@@ -52,7 +52,7 @@ def week2_qsp_protocol():
     frame = QSPFrame(
         source="NR-A",
         destination="NR-B",
-        payload=b"Hello World — spin state |1>",
+        payload=b"Hello World - spin state |1>",
         phase_state=hs.phase_a,
         atp_level=87.5,
     )

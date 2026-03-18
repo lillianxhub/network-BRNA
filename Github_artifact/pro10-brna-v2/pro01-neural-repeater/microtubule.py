@@ -72,7 +72,7 @@ class MicrotubuleBundle:
         Simulate holding the qubit for a given duration.
         ATP must be above 20% for coherence to survive.
         """
-        self.metabolic_atp -= duration_ms * 0.1   # ATP drain per ms
+        self.metabolic_atp -= duration_ms * 0.005   # ATP drain per ms
         if self.metabolic_atp < 20.0:
             print(f"[{self.node_id}] WARNING: Low ATP ({self.metabolic_atp:.1f}%). Metabolic decoherence risk.")
             self.is_coherent = False

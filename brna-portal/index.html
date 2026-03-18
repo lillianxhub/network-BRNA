@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRNA Galactic Command Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #050a14;
+            --glass-bg: rgba(15, 25, 45, 0.7);
+            --neon-cyan: #00f2ff;
+            --neon-magenta: #ff00ea;
+            --text-main: #e0e6ed;
+            --text-dim: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-deep);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(0, 242, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 234, 0.05) 0%, transparent 40%);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta));
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--neon-cyan);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+        }
+
+        .panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .node-map {
+            height: 500px;
+            position: relative;
+            background: radial-gradient(circle, rgba(0, 242, 255, 0.03) 0%, transparent 70%);
+            overflow: hidden;
+            border: 1px solid rgba(0, 242, 255, 0.1);
+        }
+
+        .node {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--neon-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-cyan);
+            transition: all 0.3s ease;
+        }
+
+        .node:hover {
+            transform: scale(1.5);
+            box-shadow: 0 0 20px var(--neon-cyan);
+        }
+
+        .node-label {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            font-family: 'Orbitron';
+            color: var(--text-dim);
+            white-space: nowrap;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Orbitron';
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, rgba(0, 242, 255, 0.2), rgba(255, 0, 234, 0.2));
+            border-color: var(--neon-cyan);
+        }
+
+        .console {
+            margin-top: 2rem;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'monospace';
+            font-size: 13px;
+            color: #00ff00;
+            height: 300px;
+            overflow-y: auto;
+            border-left: 3px solid var(--neon-cyan);
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: var(--neon-cyan);
+            box-shadow: 0 0 10px var(--neon-cyan);
+            transition: width 0.5s ease;
+        }
+
+        /* Animation for pulse */
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+
+        .scanning {
+            animation: pulse 2s infinite;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <div>
+                    <h1>BRNA Galactic</h1>
+                    <p style="font-size: 10px; color: var(--neon-cyan); font-family: 'Orbitron'">Bio-Resonance Network Architecture</p>
+                </div>
+            </div>
+            <div style="text-align: right">
+                <p id="system-time" style="font-family: 'Orbitron'; font-size: 14px"></p>
+                <p id="connection-status" style="font-size: 10px; color: var(--neon-cyan)">CONNECTED // ENCRYPTED</p>
+            </div>
+        </header>
+
+        <div class="main-grid">
+            <div class="panel node-map" id="map">
+                <!-- Nodes will be injected here -->
+                <h3 style="position: absolute; bottom: 20px; left: 20px; color: rgba(255,255,255,0.2)">Topology Visualizer</h3>
+            </div>
+
+            <div class="controls">
+                <div class="panel">
+                    <h2 style="font-size: 18px; margin-bottom: 1.5rem">Command Suite</h2>
+                    <button class="btn btn-primary" id="btn-simulate">
+                        <span>▶</span> RUN SIMULATION
+                    </button>
+                    <button class="btn" id="btn-test" style="margin-top: 1rem">
+                        <span>⚡</span> EXECUTE TEST SUITE
+                    </button>
+                    
+                    <div class="status-bar" style="margin-top: 2rem">
+                        <span>SYSTEM LOAD</span>
+                        <span id="load-val">0%</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="load-bar"></div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 1rem">
+                    <h3 style="font-size: 14px; color: var(--text-dim)">Node Status</h3>
+                    <div id="node-list" style="margin-top: 1rem">
+                        <!-- Summary list -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel console" id="console">
+            [SYSTEM] Waiting for initialization...
+            [SYSTEM] Link to BRNA core established.
+        </div>
+    </div>
+
+    <script>
+        const nodes = [
+            { id: "NR-A", x: 20, y: 30 }, { id: "NR-B", x: 40, y: 30 },
+            { id: "NR-C", x: 30, y: 50 }, { id: "NR-D", x: 50, y: 50 },
+            { id: "NR-E", x: 70, y: 40 }, { id: "DNA-Store", x: 85, y: 40 },
+            { id: "NR-F", x: 70, y: 60 }, { id: "HITL-GW", x: 50, y: 80 },
+            { id: "Monitor-1", x: 40, y: 90 }, { id: "Monitor-2", x: 60, y: 90 },
+            { id: "QNode-A", x: 10, y: 70 }, { id: "QNode-B", x: 25, y: 70 },
+            { id: "QNode-C", x: 80, y: 80 }, { id: "QNode-D", x: 95, y: 80 }
+        ];
+
+        const map = document.getElementById('map');
+        const consoleEl = document.getElementById('console');
+        const btnSimulate = document.getElementById('btn-simulate');
+        const btnTest = document.getElementById('btn-test');
+        const loadBar = document.getElementById('load-bar');
+        const loadVal = document.getElementById('load-val');
+
+        // Inject nodes
+        nodes.forEach(n => {
+            const div = document.createElement('div');
+            div.className = 'node';
+            div.style.left = n.x + '%';
+            div.style.top = n.y + '%';
+            div.innerHTML = `<span class="node-label">${n.id}</span>`;
+            map.appendChild(div);
+        });
+
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            if (type === 'warn') div.style.color = 'yellow';
+            if (type === 'error') div.style.color = 'red';
+            consoleEl.appendChild(div);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        async function updateStatus() {
+            try {
+                const res = await fetch('/status');
+                const data = await res.json();
+                
+                if (data.running) {
+                    btnSimulate.disabled = true;
+                    btnSimulate.style.opacity = 0.5;
+                    // Filter and show new logs
+                    const currentLogs = data.last_logs.split('\n');
+                    const lastShown = consoleEl.textContent.split('\n').length;
+                    if (currentLogs.length > lastShown) {
+                        for (let i = Math.max(0, lastShown - 5); i < currentLogs.length; i++) {
+                            if (currentLogs[i] && !consoleEl.textContent.includes(currentLogs[i])) {
+                                log(currentLogs[i]);
+                            }
+                        }
+                    }
+                } else {
+                    btnSimulate.disabled = false;
+                    btnSimulate.style.opacity = 1;
+                }
+                
+                loadBar.style.width = data.progress + '%';
+                loadVal.textContent = data.progress + '%';
+
+                // Update node visual status
+                if (data.nodes) {
+                    const nodeMap = document.querySelectorAll('.node');
+                    nodeMap.forEach(el => {
+                        const id = el.querySelector('.node-label').textContent;
+                        const nData = data.nodes[id];
+                        if (nData) {
+                            if (nData.status === 'CRIT') el.style.backgroundColor = 'red', el.style.boxShadow = '0 0 15px red';
+                            else if (nData.status === 'WARN') el.style.backgroundColor = 'orange', el.style.boxShadow = '0 0 15px orange';
+                            else el.style.backgroundColor = 'var(--neon-cyan)', el.style.boxShadow = '0 0 10px var(--neon-cyan)';
+                        }
+                    });
+                }
+                
+            } catch (e) {
+                console.error("Status check failed", e);
+            }
+        }
+
+        btnSimulate.onclick = async () => {
+            log("INITIATING SIMULATION FLOW...");
+            const res = await fetch('/simulate', { method: 'POST' });
+            if (res.ok) log("SIMULATION ENGINE ONLINE", 'info');
+        };
+
+        btnTest.onclick = async () => {
+            log("RUNNING TEST SUITE...", 'warn');
+            btnTest.disabled = true;
+            const res = await fetch('/test', { method: 'POST' });
+            const data = await res.json();
+            log("--- TEST RESULTS ---");
+            log(data.summary);
+            btnTest.disabled = false;
+        };
+
+        setInterval(updateStatus, 1000);
+        setInterval(() => {
+            document.getElementById('system-time').textContent = new Date().toLocaleTimeString();
+        }, 1000);
+
+    </script>
+</body>
+</html>

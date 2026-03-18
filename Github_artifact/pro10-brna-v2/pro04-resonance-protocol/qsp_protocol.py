@@ -116,7 +116,7 @@ if __name__ == "__main__":
     frame = QSPFrame(
         source="NR-A",
         destination="NR-B",
-        payload=b"Hello World — spin state |1>",
+        payload=b"Hello World - spin state |1>",
         phase_state=handshake.phase_a,
         atp_level=87.5,
     )
