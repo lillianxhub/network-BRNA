@@ -1424,22 +1424,27 @@ class HTMLVisualizer:
         return html
     
     def launch(self, title: str = "BRNA Network Topology") -> str:
-        """Launch HTML visualization in browser"""
+        """Save HTML visualization to a local file"""
         html_content = self.generate_html(title)
         
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False, encoding='utf-8') as f:
+        filename = "brna_visualization.html"
+        with open(filename, 'w', encoding='utf-8') as f:
             f.write(html_content)
-            self.temp_file = f.name
         
-        import webbrowser
-        webbrowser.open('file://' + os.path.abspath(self.temp_file))
+        self.temp_file = os.path.abspath(filename)
         
+        # Try to open in browser, but don't fail if it doesn't work
+        try:
+            import webbrowser
+            webbrowser.open('file://' + self.temp_file)
+        except:
+            pass
+            
         return self.temp_file
     
     def cleanup(self):
-        """Remove temporary file"""
-        if self.temp_file and os.path.exists(self.temp_file):
-            os.unlink(self.temp_file)
+        """Cleanup logic (disabled for local persistence)"""
+        pass
 
 
 # ============================================================================
@@ -1752,16 +1757,13 @@ class EnhancedTerminalUI:
         visualizer = HTMLVisualizer(nodes, links)
         filename = visualizer.launch("BRNA Network Topology - Live View")
         
-        print(self._c(f"✓ Visualization launched!", self.GREEN))
-        print(self._c(f"📁 Temporary file: {filename}", self.GRAY))
+        print(self._c(f"✓ Visualization saved!", self.GREEN))
+        print(self._c(f"📁 Local file: {filename}", self.GRAY))
         print()
-        print(self._c("The topology viewer is now open in your browser.", self.CYAN))
-        print(self._c("Close the browser tab when done.", self.GRAY))
+        print(self._c("If it didn't open automatically, please open this file manually:", self.CYAN))
+        print(self._c(f"  {filename}", self.WHITE + self.BOLD))
         print()
         input(self._c("Press Enter to continue...", self.GRAY))
-        
-        # Cleanup
-        visualizer.cleanup()
     
     def custom_scenario_menu(self):
         """Menu for creating custom scenarios"""

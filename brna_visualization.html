@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRNA Network Topology - Live View</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a1929 0%, #1a2a3a 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #0a1929 0%, #1e3a5f 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 4px solid #4d9fff;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #4d9fff 0%, #b388ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .canvas-wrapper {
+            background: #0a0f1a;
+            padding: 20px;
+            position: relative;
+            min-height: 700px;
+        }
+        
+        #topologyCanvas {
+            width: 100%;
+            height: auto;
+            background: #0a0f1a;
+            border-radius: 12px;
+            display: block;
+            border: 1px solid #333;
+        }
+        
+        .stats-panel {
+            display: flex;
+            gap: 20px;
+            padding: 15px 20px;
+            background: #f0f4f8;
+            border-top: 2px solid #d0d8e0;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-width: 150px;
+        }
+        
+        .stat-label {
+            font-size: 0.8em;
+            color: #4a5568;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #1a6faf;
+        }
+        
+        .stat-unit {
+            font-size: 0.8em;
+            color: #8a94a0;
+            margin-left: 5px;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 20px;
+            padding: 10px 20px;
+            background: #f8fafc;
+            border-top: 1px solid #d0d8e0;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .color-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-active { background: #2d7a4f; }
+        .status-standby { background: #f59e0b; }
+        .status-idle { background: #8a94a0; }
+        
+        .controls {
+            padding: 15px 20px;
+            background: #e4e8f0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary { background: #1a6faf; color: white; }
+        .btn-primary:hover { background: #155a9a; transform: translateY(-2px); }
+        
+        .log-panel {
+            background: #1e1e2e;
+            color: #e4e6e9;
+            padding: 15px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 150px;
+            overflow-y: auto;
+            border-top: 2px solid #4d9fff;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 3px;
+        }
+        
+        .log-time {
+            color: #8a94a0;
+            margin-right: 10px;
+        }
+        
+        .log-ok { color: #2d7a4f; }
+        .log-warn { color: #f59e0b; }
+        .log-err { color: #c0392b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧬 BRNA Network Topology</h1>
+            <div class="stats-panel" id="liveStats">
+                <div class="stat-card">
+                    <div class="stat-label">Active Nodes</div>
+                    <div class="stat-value" id="statNodes">16</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Coherence</div>
+                    <div class="stat-value" id="statCoherence">93.2<span class="stat-unit">%</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Quantum Links</div>
+                    <div class="stat-value" id="statQuantum">3</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Current Step</div>
+                    <div class="stat-value" id="statStep">—</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="canvas-wrapper">
+            <canvas id="topologyCanvas" width="1000" height="700"></canvas>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item"><span class="color-dot" style="background: #1a6faf;"></span> Core Zone</div>
+            <div class="legend-item"><span class="color-dot" style="background: #6b3fa0;"></span> Bio Zone</div>
+            <div class="legend-item"><span class="color-dot" style="background: #7a5c00;"></span> HITL Zone</div>
+            <div class="legend-item"><span class="color-dot" style="background: #2d7a4f;"></span> Entanglement Zone</div>
+            <div class="legend-item"><span class="color-dot" style="background: #b0bcc8;"></span> Ethernet</div>
+            <div class="legend-item"><span class="color-dot" style="background: #8a94a0; border-top: 2px dotted #8a94a0;"></span> Serial (Mycelial)</div>
+            <div class="legend-item"><span class="color-dot" style="background: #2d7a4f; border-top: 2px dashed #2d7a4f;"></span> Quantum</div>
+            <div class="legend-item"><span class="color-dot" style="background: #8a9a8a; border-top: 2px dotted #8a9a8a;"></span> Swap</div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" onclick="startAnimation()">▶ Start Animation</button>
+            <button class="btn btn-primary" onclick="stopAnimation()">⏸ Stop</button>
+            <button class="btn btn-primary" onclick="highlightCore()">🌟 Highlight Core</button>
+            <button class="btn btn-primary" onclick="highlightBio()">🧬 Highlight Bio</button>
+            <button class="btn btn-primary" onclick="highlightHITL()">👤 Highlight HITL</button>
+            <button class="btn btn-primary" onclick="highlightQuantum()">⚛️ Highlight Quantum</button>
+            <button class="btn btn-primary" onclick="demonstratePaths()">🗺️ Show Network Paths</button>
+            <span style="margin-left: auto; color: #4a5568;">Packets follow actual network topology</span>
+        </div>
+        
+        <div class="log-panel" id="logPanel">
+            <div class="log-entry"><span class="log-time">00:00:00</span> <span class="log-ok">✓ BRNA Network initialized</span></div>
+            <div class="log-entry"><span class="log-time">00:00:01</span> All 16 nodes active</div>
+            <div class="log-entry"><span class="log-time">00:00:02</span> Path-based routing enabled</div>
+        </div>
+    </div>
+
+    <script>
+        // Node positions and data
+        const nodes = [
+            { 
+                id: 'NR-A', 
+                x: 200, 
+                y: 120, 
+                zone: 'core', 
+                type: 'router',
+                coherence: 94.0,
+                status: 'Active'
+            },
+            { 
+                id: 'NR-B', 
+                x: 450, 
+                y: 120, 
+                zone: 'core', 
+                type: 'router',
+                coherence: 91.0,
+                status: 'Active'
+            },
+            { 
+                id: 'NR-C', 
+                x: 700, 
+                y: 120, 
+                zone: 'core', 
+                type: 'router',
+                coherence: 88.0,
+                status: 'Active'
+            },
+            { 
+                id: 'NR-D', 
+                x: 450, 
+                y: 220, 
+                zone: 'core', 
+                type: 'router',
+                coherence: 97.0,
+                status: 'Active'
+            },
+            { 
+                id: 'SW-BIO', 
+                x: 250, 
+                y: 350, 
+                zone: 'bio', 
+                type: 'switch',
+                coherence: 0,
+                status: 'Active'
+            },
+            { 
+                id: 'DNA-Store', 
+                x: 250, 
+                y: 480, 
+                zone: 'bio', 
+                type: 'pc',
+                coherence: 0,
+                status: 'Active'
+            },
+            { 
+                id: 'NR-E', 
+                x: 120, 
+                y: 430, 
+                zone: 'bio', 
+                type: 'pc',
+                coherence: 89.0,
+                status: 'Active'
+            },
+            { 
+                id: 'NR-F', 
+                x: 380, 
+                y: 430, 
+                zone: 'bio', 
+                type: 'pc',
+                coherence: 87.0,
+                status: 'Active'
+            },
+            { 
+                id: 'PC-Bio1', 
+                x: 120, 
+                y: 530, 
+                zone: 'bio', 
+                type: 'pc',
+                coherence: 0,
+                status: 'Active'
+            },
+            { 
+                id: 'PC-Bio2', 
+                x: 380, 
+                y: 530, 
+                zone: 'bio', 
+                type: 'pc',
+                coherence: 0,
+                status: 'Active'
+            },
+            { 
+                id: 'SW-HITL', 
+                x: 650, 
+                y: 350, 
+                zone: 'hitl', 
+                type: 'switch',
+                coherence: 0,
+                status: 'Active'
+            },
+            { 
+                id: 'HITL-GW', 
+                x: 520, 
+                y: 430, 
+                zone: 'hitl', 
+                type: 'pc',
+                coherence: 0,
+                status: 'Standby'
+            },
+            { 
+                id: 'Monitor-1', 
+                x: 600, 
+                y: 430, 
+                zone: 'hitl', 
+                type: 'pc',
+                coherence: 0,
+                status: 'Active'
+            },
+            { 
+                id: 'Monitor-2', 
+                x: 680, 
+                y: 430, 
+                zone: 'hitl', 
+                type: 'pc',
+                coherence: 0,
+                status: 'Active'
+            },
+            { 
+                id: 'PC-HITL1', 
+                x: 570, 
+                y: 530, 
+                zone: 'hitl', 
+                type: 'pc',
+                coherence: 0,
+                status: 'Active'
+            },
+            { 
+                id: 'PC-HITL2', 
+                x: 730, 
+                y: 530, 
+                zone: 'hitl', 
+                type: 'pc',
+                coherence: 0,
+                status: 'Idle'
+            },
+            { 
+                id: 'QNode-A', 
+                x: 200, 
+                y: 620, 
+                zone: 'entangle', 
+                type: 'qnode',
+                coherence: 99.0,
+                status: 'Active'
+            },
+            { 
+                id: 'QNode-B', 
+                x: 350, 
+                y: 620, 
+                zone: 'entangle', 
+                type: 'qnode',
+                coherence: 99.0,
+                status: 'Active'
+            },
+            { 
+                id: 'QNode-C', 
+                x: 550, 
+                y: 620, 
+                zone: 'entangle', 
+                type: 'qnode',
+                coherence: 98.0,
+                status: 'Active'
+            },
+            { 
+                id: 'QNode-D', 
+                x: 700, 
+                y: 620, 
+                zone: 'entangle', 
+                type: 'qnode',
+                coherence: 98.0,
+                status: 'Active'
+            }
+        ];
+        
+        const links = [
+            { 
+                from: 'NR-A', 
+                to: 'NR-B', 
+                type: 'serial', 
+                label: 'Serial' 
+            },
+            { 
+                from: 'NR-B', 
+                to: 'NR-C', 
+                type: 'serial', 
+                label: 'Serial' 
+            },
+            { 
+                from: 'NR-A', 
+                to: 'NR-D', 
+                type: 'eth', 
+                label: 'Fa0/1' 
+            },
+            { 
+                from: 'NR-B', 
+                to: 'NR-D', 
+                type: 'eth', 
+                label: 'Fa1/0' 
+            },
+            { 
+                from: 'NR-C', 
+                to: 'NR-D', 
+                type: 'eth', 
+                label: 'Fa1/0' 
+            },
+            { 
+                from: 'NR-D', 
+                to: 'SW-BIO', 
+                type: 'eth', 
+                label: 'Fa1/0' 
+            },
+            { 
+                from: 'NR-D', 
+                to: 'SW-HITL', 
+                type: 'eth', 
+                label: 'Fa1/1' 
+            },
+            { 
+                from: 'SW-BIO', 
+                to: 'NR-E', 
+                type: 'eth', 
+                label: 'Gi0/1' 
+            },
+            { 
+                from: 'SW-BIO', 
+                to: 'DNA-Store', 
+                type: 'eth', 
+                label: 'Gi0/2' 
+            },
+            { 
+                from: 'SW-BIO', 
+                to: 'NR-F', 
+                type: 'eth', 
+                label: 'Gi0/3' 
+            },
+            { 
+                from: 'SW-BIO', 
+                to: 'PC-Bio1', 
+                type: 'eth', 
+                label: 'Gi0/4' 
+            },
+            { 
+                from: 'SW-BIO', 
+                to: 'PC-Bio2', 
+                type: 'eth', 
+                label: 'Gi0/5' 
+            },
+            { 
+                from: 'SW-HITL', 
+                to: 'HITL-GW', 
+                type: 'eth', 
+                label: 'Gi0/1' 
+            },
+            { 
+                from: 'SW-HITL', 
+                to: 'Monitor-1', 
+                type: 'eth', 
+                label: 'Gi0/2' 
+            },
+            { 
+                from: 'SW-HITL', 
+                to: 'Monitor-2', 
+                type: 'eth', 
+                label: 'Gi0/3' 
+            },
+            { 
+                from: 'SW-HITL', 
+                to: 'PC-HITL1', 
+                type: 'eth', 
+                label: 'Gi0/4' 
+            },
+            { 
+                from: 'SW-HITL', 
+                to: 'PC-HITL2', 
+                type: 'eth', 
+                label: 'Gi0/5' 
+            },
+            { 
+                from: 'QNode-A', 
+                to: 'QNode-B', 
+                type: 'quantum', 
+                label: 'QSP pair 1' 
+            },
+            { 
+                from: 'QNode-C', 
+                to: 'QNode-D', 
+                type: 'quantum', 
+                label: 'QSP pair 2' 
+            },
+            { 
+                from: 'QNode-B', 
+                to: 'QNode-C', 
+                type: 'swap', 
+                label: 'Swap' 
+            }
+        ];
+        
+        console.log("Nodes loaded:", nodes.length);
+        console.log("Links loaded:", links.length);
+        
+        // Zone colors
+        const zoneColors = {
+            core: { border: '#1a6faf', fill: 'rgba(26,111,175,0.1)' },
+            bio: { border: '#6b3fa0', fill: 'rgba(107,63,160,0.1)' },
+            hitl: { border: '#7a5c00', fill: 'rgba(122,92,0,0.1)' },
+            entangle: { border: '#2d7a4f', fill: 'rgba(45,122,79,0.1)' }
+        };
+        
+        const canvas = document.getElementById('topologyCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Animation variables
+        let animationId = null;
+        let packets = [];
+        let pulses = {};
+        let packetCounter = 0;
+        
+        // Initialize pulses
+        nodes.forEach(node => {
+            pulses[node.id] = 0;
+        });
+        
+        // ============ PATH FINDING ============
+        function buildAdjacencyList() {
+            const adj = {};
+            links.forEach(link => {
+                if (!adj[link.from]) adj[link.from] = [];
+                if (!adj[link.to]) adj[link.to] = [];
+                adj[link.from].push(link.to);
+                adj[link.to].push(link.from);
+            });
+            return adj;
+        }
+        
+        function findPath(sourceId, destId) {
+            if (sourceId === destId) return [sourceId];
+            
+            const adj = buildAdjacencyList();
+            
+            // BFS to find shortest path
+            const queue = [{ node: sourceId, path: [sourceId] }];
+            const visited = new Set([sourceId]);
+            
+            while (queue.length > 0) {
+                const { node, path } = queue.shift();
+                
+                if (node === destId) {
+                    return path;
+                }
+                
+                if (adj[node]) {
+                    for (const neighbor of adj[node]) {
+                        if (!visited.has(neighbor)) {
+                            visited.add(neighbor);
+                            queue.push({
+                                node: neighbor,
+                                path: [...path, neighbor]
+                            });
+                        }
+                    }
+                }
+            }
+            return null; // No path found
+        }
+        
+        // ============ PATH-BASED PACKET ROUTING ============
+        function sendPacket(sourceId, destId, color = '#1a6faf') {
+            const path = findPath(sourceId, destId);
+            
+            if (!path || path.length < 2) {
+                addLog(`❌ No network path from ${sourceId} to ${destId}`, 'err');
+                return;
+            }
+            
+            const pathStr = path.join(' → ');
+            addLog(`🛤️  Route: ${pathStr}`, 'ok');
+            
+            const packetId = ++packetCounter;
+            
+            // Send packet along each hop with delay
+            for (let i = 0; i < path.length - 1; i++) {
+                const fromNode = path[i];
+                const toNode = path[i + 1];
+                const delay = i * 800; // 800ms per hop
+                
+                setTimeout(() => {
+                    // Create packet for this hop
+                    packets.push({
+                        id: packetId,
+                        from: fromNode,
+                        to: toNode,
+                        progress: 0,
+                        color: color,
+                        hop: i,
+                        totalHops: path.length - 1
+                    });
+                    
+                    // Pulse the sending node
+                    if (pulses[fromNode] !== undefined) {
+                        pulses[fromNode] = 0.8;
+                    }
+                    
+                    // Log the hop
+                    if (i === 0) {
+                        addLog(`📤 ${sourceId} → ${toNode}`, 'ok');
+                    } else if (i === path.length - 2) {
+                        addLog(`📥 Packet arrived at ${destId} via ${fromNode}`, 'ok');
+                    } else {
+                        addLog(`🔄 ${fromNode} → ${toNode}`, 'ok');
+                    }
+                }, delay);
+            }
+        }
+        
+        // ============ DEMONSTRATION ROUTES ============
+        function demonstratePaths() {
+            addLog('=== DEMONSTRATING NETWORK PATHS ===', 'ok');
+            
+            // Clear any existing packets
+            packets = [];
+            
+            // Route 1: Core to Bio via NR-D hub
+            setTimeout(() => {
+                addLog('\n🌐 Route 1: NR-A → NR-D → SW-BIO → DNA-Store', 'ok');
+                sendPacket('NR-A', 'DNA-Store', '#1a6faf');
+            }, 1000);
+            
+            // Route 2: Core to HITL via NR-D hub
+            setTimeout(() => {
+                addLog('\n🌐 Route 2: NR-C → NR-D → SW-HITL → HITL-GW', 'ok');
+                sendPacket('NR-C', 'HITL-GW', '#7a5c00');
+            }, 6000);
+            
+            // Route 3: Quantum entanglement chain
+            setTimeout(() => {
+                addLog('\n🌐 Route 3: QNode-A → QNode-B → QNode-C → QNode-D', 'ok');
+                sendPacket('QNode-A', 'QNode-D', '#2d7a4f');
+            }, 11000);
+            
+            // Route 4: Bio to HITL cross-zone
+            setTimeout(() => {
+                addLog('\n🌐 Route 4: DNA-Store → SW-BIO → NR-D → SW-HITL → Monitor-1', 'ok');
+                sendPacket('DNA-Store', 'Monitor-1', '#6b3fa0');
+            }, 16000);
+            
+            // Route 5: Mycelial mesh internal
+            setTimeout(() => {
+                addLog('\n🌐 Route 5: NR-E → SW-BIO → NR-F (Bio zone internal)', 'ok');
+                sendPacket('NR-E', 'NR-F', '#6b3fa0');
+            }, 21000);
+            
+            // Route 6: HITL governance
+            setTimeout(() => {
+                addLog('\n🌐 Route 6: HITL-GW → SW-HITL → Monitor-1 → Monitor-2', 'ok');
+                sendPacket('HITL-GW', 'Monitor-2', '#7a5c00');
+            }, 26000);
+        }
+        
+        // ============ VALID ROUTE GENERATOR ============
+        function getRandomValidRoute() {
+            const validRoutes = [
+                // Core to Bio
+                {from: 'NR-A', to: 'DNA-Store', color: '#1a6faf'},
+                {from: 'NR-B', to: 'NR-E', color: '#1a6faf'},
+                {from: 'NR-C', to: 'PC-Bio1', color: '#1a6faf'},
+                {from: 'NR-D', to: 'NR-F', color: '#1a6faf'},
+                
+                // Core to HITL
+                {from: 'NR-A', to: 'HITL-GW', color: '#7a5c00'},
+                {from: 'NR-B', to: 'Monitor-1', color: '#7a5c00'},
+                {from: 'NR-C', to: 'PC-HITL1', color: '#7a5c00'},
+                
+                // Bio internal
+                {from: 'NR-E', to: 'DNA-Store', color: '#6b3fa0'},
+                {from: 'DNA-Store', to: 'PC-Bio2', color: '#6b3fa0'},
+                {from: 'SW-BIO', to: 'NR-F', color: '#6b3fa0'},
+                
+                // HITL internal
+                {from: 'HITL-GW', to: 'Monitor-2', color: '#7a5c00'},
+                {from: 'SW-HITL', to: 'PC-HITL2', color: '#7a5c00'},
+                
+                // Quantum zone
+                {from: 'QNode-A', to: 'QNode-C', color: '#2d7a4f'},
+                {from: 'QNode-B', to: 'QNode-D', color: '#2d7a4f'},
+            ];
+            
+            return validRoutes[Math.floor(Math.random() * validRoutes.length)];
+        }
+        
+        // ============ DRAWING FUNCTIONS ============
+        function drawZone(x1, y1, x2, y2, zone) {
+            ctx.save();
+            ctx.fillStyle = zoneColors[zone].fill;
+            ctx.strokeStyle = zoneColors[zone].border;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            
+            ctx.beginPath();
+            ctx.rect(x1, y1, x2 - x1, y2 - y1);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
+            ctx.font = 'bold 14px "Segoe UI", sans-serif';
+            ctx.fillStyle = zoneColors[zone].border;
+            ctx.fillText(zone.toUpperCase(), x1 + 10, y1 + 25);
+            
+            ctx.restore();
+        }
+        
+        function drawZones() {
+            drawZone(100, 50, 850, 270, 'core');
+            drawZone(50, 300, 450, 590, 'bio');
+            drawZone(500, 300, 900, 590, 'hitl');
+            drawZone(100, 600, 850, 670, 'entangle');
+        }
+        
+        function drawLinks() {
+            links.forEach(link => {
+                const fromNode = nodes.find(n => n.id === link.from);
+                const toNode = nodes.find(n => n.id === link.to);
+                if (!fromNode || !toNode) return;
+                
+                ctx.save();
+                
+                switch(link.type) {
+                    case 'quantum':
+                        ctx.strokeStyle = '#2d7a4f';
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([8, 6]);
+                        break;
+                    case 'swap':
+                        ctx.strokeStyle = '#8a9a8a';
+                        ctx.lineWidth = 1.5;
+                        ctx.setLineDash([4, 6]);
+                        break;
+                    case 'serial':
+                        ctx.strokeStyle = '#8a94a0';
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([6, 4]);
+                        break;
+                    default:
+                        ctx.strokeStyle = '#b0bcc8';
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([]);
+                }
+                
+                ctx.beginPath();
+                ctx.moveTo(fromNode.x, fromNode.y);
+                ctx.lineTo(toNode.x, toNode.y);
+                ctx.stroke();
+                
+                ctx.restore();
+            });
+        }
+        
+        function drawNodes() {
+            nodes.forEach(node => {
+                ctx.save();
+                
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetY = 3;
+                
+                if (pulses[node.id] > 0) {
+                    ctx.shadowColor = zoneColors[node.zone].border;
+                    ctx.shadowBlur = 20 + 10 * Math.sin(Date.now() / 200);
+                }
+                
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = zoneColors[node.zone].border;
+                ctx.lineWidth = 3;
+                
+                switch(node.type) {
+                    case 'router':
+                        ctx.beginPath();
+                        ctx.moveTo(node.x, node.y - 20);
+                        ctx.lineTo(node.x + 20, node.y);
+                        ctx.lineTo(node.x, node.y + 20);
+                        ctx.lineTo(node.x - 20, node.y);
+                        ctx.closePath();
+                        break;
+                        
+                    case 'switch':
+                        ctx.beginPath();
+                        roundedRect(ctx, node.x - 20, node.y - 12, 40, 24, 5);
+                        break;
+                        
+                    case 'qnode':
+                        ctx.beginPath();
+                        ctx.arc(node.x, node.y, 18, 0, Math.PI * 2);
+                        break;
+                        
+                    default:
+                        ctx.beginPath();
+                        roundedRect(ctx, node.x - 18, node.y - 12, 36, 24, 4);
+                }
+                
+                ctx.fill();
+                ctx.stroke();
+                
+                if (node.type === 'qnode') {
+                    ctx.shadowBlur = 5;
+                    ctx.strokeStyle = '#2d7a4f';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, 8, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
+                    ctx.font = 'bold 10px "Segoe UI", sans-serif';
+                    ctx.fillStyle = '#2d7a4f';
+                    ctx.fillText('⚛️', node.x - 15, node.y - 30);
+                }
+                
+                ctx.shadowBlur = 0;
+                ctx.font = 'bold 12px "Segoe UI", sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.fillText(node.id, node.x, node.y - 25);
+                
+                if (node.coherence > 0) {
+                    ctx.font = '10px "Segoe UI", sans-serif';
+                    ctx.fillStyle = node.coherence > 90 ? '#2d7a4f' : node.coherence > 85 ? '#f59e0b' : '#c0392b';
+                    ctx.fillText(node.coherence + '%', node.x, node.y + 25);
+                }
+                
+                ctx.beginPath();
+                ctx.arc(node.x + 15, node.y - 15, 4, 0, Math.PI * 2);
+                ctx.fillStyle = node.status === 'Active' ? '#2d7a4f' : 
+                               node.status === 'Standby' ? '#f59e0b' : '#8a94a0';
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                
+                ctx.restore();
+            });
+        }
+        
+        function drawPackets() {
+            packets.forEach((packet, index) => {
+                packet.progress += 0.015;
+                if (packet.progress > 1) {
+                    packets.splice(index, 1);
+                    return;
+                }
+                
+                const fromNode = nodes.find(n => n.id === packet.from);
+                const toNode = nodes.find(n => n.id === packet.to);
+                if (!fromNode || !toNode) return;
+                
+                const x = fromNode.x + (toNode.x - fromNode.x) * packet.progress;
+                const y = fromNode.y + (toNode.y - fromNode.y) * packet.progress;
+                
+                ctx.save();
+                ctx.shadowColor = packet.color;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = packet.color;
+                ctx.fill();
+                
+                ctx.shadowBlur = 5;
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = 'white';
+                ctx.fill();
+                
+                ctx.restore();
+            });
+        }
+        
+        function roundedRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        }
+        
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawZones();
+            drawLinks();
+            drawPackets();
+            drawNodes();
+            
+            animationId = requestAnimationFrame(draw);
+        }
+        
+        // Animation control
+        function startAnimation() {
+            if (!animationId) {
+                draw();
+            }
+        }
+        
+        function stopAnimation() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        }
+        
+        function addLog(message, type = '') {
+            const logPanel = document.getElementById('logPanel');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-time">${time}</span> <span class="log-${type}">${message}</span>`;
+            logPanel.appendChild(entry);
+            logPanel.scrollTop = logPanel.scrollHeight;
+            
+            while (logPanel.children.length > 15) {
+                logPanel.removeChild(logPanel.firstChild);
+            }
+        }
+        
+        // Highlight functions
+        function highlightCore() {
+            addLog('🌟 Highlighting Core Zone', 'ok');
+        }
+        
+        function highlightBio() {
+            addLog('🧬 Highlighting Bio Zone', 'ok');
+        }
+        
+        function highlightHITL() {
+            addLog('👤 Highlighting HITL Zone', 'warn');
+        }
+        
+        function highlightQuantum() {
+            addLog('⚛️ Highlighting Quantum Zone', 'ok');
+        }
+        
+        // Update stats
+        function updateStats(nodesActive, coherence, quantumLinks, currentStep) {
+            document.getElementById('statNodes').textContent = nodesActive;
+            document.getElementById('statCoherence').textContent = coherence;
+            document.getElementById('statQuantum').textContent = quantumLinks;
+            document.getElementById('statStep').textContent = currentStep;
+        }
+        
+        // Pulse update
+        setInterval(() => {
+            for (let id in pulses) {
+                if (pulses[id] > 0) {
+                    pulses[id] -= 0.02;
+                }
+            }
+        }, 50);
+        
+        // Start animation
+        setTimeout(() => {
+            startAnimation();
+            console.log("Animation started");
+            addLog('✅ Path-based routing active', 'ok');
+        }, 100);
+        
+        // Periodic valid route generator (every 15 seconds)
+        setInterval(() => {
+            if (packets.length < 5) {  // Don't overload
+                const route = getRandomValidRoute();
+                if (route) {
+                    sendPacket(route.from, route.to, route.color);
+                }
+            }
+        }, 15000);
+        
+        // Initial demonstration after 2 seconds
+        setTimeout(() => {
+            demonstratePaths();
+        }, 2000);
+    </script>
+</body>
+</html>
