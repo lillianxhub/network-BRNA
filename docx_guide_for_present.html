@@ -1,0 +1,1813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRNA Complete Network Topology - Node Information & Protocols</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a1929 0%, #1a2a3a 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #0a1929 0%, #1e3a5f 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 4px solid #4d9fff;
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #4d9fff 0%, #b388ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header h2 {
+            font-size: 1.3em;
+            color: #a0c0e0;
+            font-weight: 400;
+        }
+        
+        .header .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+            color: #c0d0e0;
+        }
+        
+        .topology-section {
+            display: flex;
+            padding: 30px;
+            gap: 30px;
+            background: #f0f4f8;
+        }
+        
+        .canvas-wrapper {
+            flex: 2;
+            background: #0a0f1a;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+        }
+        
+        #topologyCanvas {
+            width: 100%;
+            height: auto;
+            background: #0a0f1a;
+            border-radius: 12px;
+            display: block;
+            cursor: pointer;
+        }
+        
+        .info-panel {
+            flex: 1;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 800px;
+        }
+        
+        .panel-tabs {
+            display: flex;
+            background: #f0f4f8;
+            border-bottom: 2px solid #e0e8f0;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #4a5568;
+        }
+        
+        .tab:hover {
+            background: #e4e8f0;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #1a6faf;
+            border-bottom: 3px solid #1a6faf;
+        }
+        
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .zone-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 6px solid;
+        }
+        
+        .zone-card.core { border-left-color: #1a6faf; }
+        .zone-card.bio { border-left-color: #6b3fa0; }
+        .zone-card.hitl { border-left-color: #7a5c00; }
+        .zone-card.entangle { border-left-color: #2d7a4f; }
+        
+        .zone-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .zone-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        
+        .badge-core { background: #e8f2fa; color: #1a6faf; }
+        .badge-bio { background: #f0eaf8; color: #6b3fa0; }
+        .badge-hitl { background: #fdf6e3; color: #7a5c00; }
+        .badge-entangle { background: #e6f4ec; color: #2d7a4f; }
+        
+        .node-list {
+            list-style: none;
+        }
+        
+        .node-item {
+            padding: 15px;
+            border-bottom: 1px solid #e0e8f0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .node-item:hover {
+            background: #f0f5ff;
+            transform: translateX(5px);
+        }
+        
+        .node-item.selected {
+            background: #e3f2fd;
+            border-left: 4px solid #1a6faf;
+        }
+        
+        .node-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .node-name {
+            font-weight: 700;
+            font-size: 1.1em;
+            color: #1a1d21;
+        }
+        
+        .node-type {
+            font-size: 0.8em;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: #e0e8f0;
+            color: #4a5568;
+        }
+        
+        .node-role {
+            font-size: 0.9em;
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-style: italic;
+        }
+        
+        .node-protocols {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 8px 0;
+        }
+        
+        .protocol-tag {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            font-weight: 600;
+        }
+        
+        .protocol-qsp { background: #e8f2fa; color: #1a6faf; border: 1px solid #1a6faf; }
+        .protocol-myc { background: #f0eaf8; color: #6b3fa0; border: 1px solid #6b3fa0; }
+        .protocol-dna { background: #e6f4ec; color: #2d7a4f; border: 1px solid #2d7a4f; }
+        .protocol-hitl { background: #fdf6e3; color: #7a5c00; border: 1px solid #7a5c00; }
+        .protocol-ppp { background: #fee9e6; color: #c0392b; border: 1px solid #c0392b; }
+        .protocol-blap { background: #e0f2fe; color: #0369a1; border: 1px solid #0369a1; }
+        
+        .node-detail-view {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        .node-detail-view.active {
+            display: block;
+        }
+        
+        .detail-title {
+            font-size: 1.5em;
+            color: #1a1d21;
+            margin-bottom: 5px;
+        }
+        
+        .detail-subtitle {
+            color: #4a5568;
+            font-size: 0.95em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e8f0;
+        }
+        
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-section {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 12px;
+        }
+        
+        .detail-section h4 {
+            color: #1a6faf;
+            margin-bottom: 15px;
+            font-size: 1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #d0d8e0;
+        }
+        
+        .detail-label {
+            color: #4a5568;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            color: #1a1d21;
+            font-weight: 600;
+        }
+        
+        .interface-list {
+            list-style: none;
+        }
+        
+        .interface-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            border: 1px solid #e0e8f0;
+        }
+        
+        .legend {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+        
+        .legend h3 {
+            color: #1a1d21;
+            margin-bottom: 15px;
+        }
+        
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .color-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+        
+        .controls {
+            padding: 20px 30px;
+            background: #e4e8f0;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+        
+        .btn-primary { background: #1a6faf; color: white; }
+        .btn-primary:hover { background: #155a9a; transform: translateY(-2px); }
+        .btn-bio { background: #6b3fa0; color: white; }
+        .btn-bio:hover { background: #5a3580; transform: translateY(-2px); }
+        .btn-hitl { background: #7a5c00; color: white; }
+        .btn-hitl:hover { background: #5e4700; transform: translateY(-2px); }
+        .btn-quantum { background: #2d7a4f; color: white; }
+        .btn-quantum:hover { background: #1f5c3a; transform: translateY(-2px); }
+        
+        .status-badge {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-active { background: #2d7a4f; }
+        .status-standby { background: #f59e0b; }
+        .status-idle { background: #8a94a0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧬 Bio-Resonance Network Architecture</h1>
+            <h2>Complete Topology - Node Functions, Protocols & Zone Roles</h2>
+            <div class="stats">
+                <span>📊 16 Total Nodes</span>
+                <span>🔗 21 Active Links</span>
+                <span>🌐 4 Network Zones</span>
+                <span>⚛️ 8 Quantum Nodes</span>
+            </div>
+        </div>
+        
+        <div class="topology-section">
+            <div class="canvas-wrapper">
+                <canvas id="topologyCanvas" width="900" height="700"></canvas>
+            </div>
+            
+            <div class="info-panel">
+                <div class="panel-tabs">
+                    <div class="tab active" onclick="switchTab('zones')">🏰 Zones</div>
+                    <div class="tab" onclick="switchTab('nodes')">🔌 Nodes</div>
+                    <div class="tab" onclick="switchTab('protocols')">📡 Protocols</div>
+                </div>
+                
+                <div class="panel-content" id="zonePanel">
+                    <!-- Zones content will be populated by JavaScript -->
+                </div>
+                
+                <div class="panel-content" id="nodePanel" style="display: none;">
+                    <!-- Nodes content will be populated by JavaScript -->
+                </div>
+                
+                <div class="panel-content" id="protocolPanel" style="display: none;">
+                    <!-- Protocols content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" onclick="highlightZone('core')">🌟 Highlight Core Zone</button>
+            <button class="btn btn-bio" onclick="highlightZone('bio')">🧬 Highlight Bio Zone</button>
+            <button class="btn btn-hitl" onclick="highlightZone('hitl')">👤 Highlight HITL Zone</button>
+            <button class="btn btn-quantum" onclick="highlightZone('entangle')">⚛️ Highlight Entanglement Zone</button>
+            <span style="margin-left: auto; color: #4a5568;">Click any node for complete details →</span>
+        </div>
+        
+        <!-- Node Detail Modal -->
+        <div class="node-detail-view" id="nodeDetailView">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 id="detailNodeName" style="color: #1a1d21;">Node Details</h3>
+                <button onclick="closeNodeDetail()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+            </div>
+            <div id="nodeDetailContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // COMPLETE NODE DATABASE WITH FULL INFORMATION
+        // ============================================
+        const nodeDatabase = {
+            // CORE ZONE - NEURAL REPEATERS
+            'NR-A': {
+                name: 'Neural Repeater Alpha',
+                zone: 'core',
+                type: 'router',
+                ip: '10.0.1.1/24',
+                role: 'Primary Mesh Router - Neural Repeater A',
+                function: 'Entry-point neural repeater that simulates a microtubule bundle holding quantum states. Each routing decision triggers an Orch OR quantum collapse event.',
+                hardware: 'Cisco IOS 12.4 / BRNA-OS 3.2',
+                status: 'Active',
+                uptime: '99.7%',
+                coherence: '94%',
+                quantum: {
+                    spinState: '↑↓ Coherent',
+                    microtubuleClass: 'Class-A',
+                    frequency: '40 Hz',
+                    decoherenceRate: '2.3 ns'
+                },
+                bio: {
+                    metabolicRate: '0.8 ATP/s',
+                    temperature: '37.2°C',
+                    nutrientLevel: '92%',
+                    neuralNoise: '0.02 dB'
+                },
+                interfaces: [
+                    { name: 'Fa0/0', ip: '10.0.1.1', status: 'Up', type: 'Ethernet', speed: '1 Gbps' },
+                    { name: 'Se0/0', ip: '10.0.1.5', status: 'Up', type: 'Serial (Mycelial)', speed: '840 Mbps' }
+                ],
+                protocols: ['QSP', 'MYCO-RIP', 'SPIN-BRIDGE'],
+                pythonModule: 'microtubule.py',
+                metrics: {
+                    latency: '2.3 ms',
+                    throughput: '840 Mbps',
+                    packetLoss: '0.02%',
+                    qFidelity: '94.1%'
+                },
+                connections: ['NR-B', 'NR-D']
+            },
+            
+            'NR-B': {
+                name: 'Neural Repeater Bravo',
+                zone: 'core',
+                type: 'router',
+                ip: '10.0.1.2/24',
+                role: 'Secondary Mesh Router - Neural Repeater B',
+                function: 'Central mesh router connected to NR-A, NR-C, and NR-D hub. Serial links simulate mycelial fiber strands carrying quantum-encoded packets.',
+                hardware: 'Cisco IOS 12.4 / BRNA-OS 3.2',
+                status: 'Active',
+                uptime: '98.9%',
+                coherence: '91%',
+                quantum: {
+                    spinState: '↑↑ Coherent',
+                    microtubuleClass: 'Class-A',
+                    frequency: '40 Hz',
+                    decoherenceRate: '2.8 ns'
+                },
+                bio: {
+                    metabolicRate: '0.85 ATP/s',
+                    temperature: '37.3°C',
+                    nutrientLevel: '88%',
+                    neuralNoise: '0.03 dB'
+                },
+                interfaces: [
+                    { name: 'Fa0/0', ip: '10.0.1.2', status: 'Up', type: 'Ethernet', speed: '1 Gbps' },
+                    { name: 'Se0/0', ip: '10.0.1.6', status: 'Up', type: 'Serial (Mycelial)', speed: '790 Mbps' },
+                    { name: 'Fa0/1', ip: '10.0.1.2', status: 'Up', type: 'Ethernet', speed: '1 Gbps' }
+                ],
+                protocols: ['QSP', 'MYCO-RIP', 'SPIN-BRIDGE'],
+                pythonModule: 'microtubule.py',
+                metrics: {
+                    latency: '2.8 ms',
+                    throughput: '790 Mbps',
+                    packetLoss: '0.04%',
+                    qFidelity: '91.3%'
+                },
+                connections: ['NR-A', 'NR-C', 'NR-D']
+            },
+            
+            'NR-C': {
+                name: 'Neural Repeater Charlie',
+                zone: 'core',
+                type: 'router',
+                ip: '10.0.1.3/24',
+                role: 'Edge Router - Neural Repeater C',
+                function: 'Edge-side neural repeater connecting to NR-B via serial and feeding into NR-D hub. Lower coherence due to edge position - first node to decohere under high load.',
+                hardware: 'Cisco IOS 12.4 / BRNA-OS 3.2',
+                status: 'Active',
+                uptime: '97.2%',
+                coherence: '88%',
+                quantum: {
+                    spinState: '↑↓ Partial',
+                    microtubuleClass: 'Class-B',
+                    frequency: '38 Hz',
+                    decoherenceRate: '3.1 ns'
+                },
+                bio: {
+                    metabolicRate: '0.92 ATP/s',
+                    temperature: '37.5°C',
+                    nutrientLevel: '76%',
+                    neuralNoise: '0.07 dB'
+                },
+                interfaces: [
+                    { name: 'Fa0/0', ip: '10.0.1.3', status: 'Up', type: 'Ethernet', speed: '1 Gbps' },
+                    { name: 'Se0/0', ip: '10.0.1.7', status: 'Up', type: 'Serial (Mycelial)', speed: '720 Mbps' }
+                ],
+                protocols: ['QSP', 'MYCO-RIP'],
+                pythonModule: 'microtubule.py',
+                metrics: {
+                    latency: '3.1 ms',
+                    throughput: '720 Mbps',
+                    packetLoss: '0.07%',
+                    qFidelity: '88.5%'
+                },
+                connections: ['NR-B', 'NR-D']
+            },
+            
+            'NR-D': {
+                name: 'Central Resonance Hub',
+                zone: 'core',
+                type: 'router',
+                ip: '10.0.1.4/24',
+                role: 'Hub Router - Central Resonance Node',
+                function: 'Central hub with highest resonance. Connects router core to both sub-zones. Runs modified Dijkstra with C_R (resonance cost) metric. All cross-zone packets route through NR-D.',
+                hardware: 'Cisco IOS 12.4 / BRNA-OS 3.2 [HUB]',
+                status: 'Active',
+                uptime: '99.99%',
+                coherence: '97%',
+                quantum: {
+                    spinState: '↑↓ Superposition',
+                    microtubuleClass: 'Class-S',
+                    frequency: '42 Hz',
+                    decoherenceRate: '1.2 ns'
+                },
+                bio: {
+                    metabolicRate: '0.75 ATP/s',
+                    temperature: '36.9°C',
+                    nutrientLevel: '98%',
+                    neuralNoise: '0.01 dB'
+                },
+                interfaces: [
+                    { name: 'Fa0/0', ip: '10.0.1.4', status: 'Up', type: 'Ethernet', speed: '1 Gbps' },
+                    { name: 'Fa0/1', ip: '10.0.1.4', status: 'Up', type: 'Ethernet', speed: '1 Gbps' },
+                    { name: 'Fa0/2', ip: '10.0.1.4', status: 'Up', type: 'Ethernet', speed: '1 Gbps' },
+                    { name: 'Fa1/0', ip: '10.0.2.254', status: 'Up', type: 'Ethernet (Bio Zone)', speed: '1 Gbps' },
+                    { name: 'Fa1/1', ip: '10.0.3.254', status: 'Up', type: 'Ethernet (HITL Zone)', speed: '1 Gbps' }
+                ],
+                protocols: ['QSP', 'MYCO-RIP', 'SPIN-BRIDGE', 'DNA-STORE', 'HITL-CTRL'],
+                pythonModule: 'microtubule.py + routing.py',
+                metrics: {
+                    latency: '1.8 ms',
+                    throughput: '980 Mbps',
+                    packetLoss: '0.01%',
+                    qFidelity: '97.2%'
+                },
+                connections: ['NR-A', 'NR-B', 'NR-C', 'SW-BIO', 'SW-HITL']
+            },
+            
+            // BIO ZONE - DNA STORAGE & MYCELIAL MESH
+            'SW-BIO': {
+                name: 'Mycelial Mesh Switch',
+                zone: 'bio',
+                type: 'switch',
+                ip: '10.0.2.0/24',
+                role: 'Switch - Mycelial Mesh Fabric',
+                function: 'L2 switch representing the mycelial mesh fabric. Provides self-healing path redundancy via BLAP addressing - if a port drops, rerouting occurs within 50 ms. Distributes signals across the bio storage zone.',
+                hardware: 'Cisco IOS 2960 / Mycelial-OS',
+                status: 'Active',
+                uptime: '99.95%',
+                bio: {
+                    selfHealing: 'Enabled',
+                    redundantPaths: '3',
+                    growthRate: 'Optimized',
+                    nutrientEfficiency: '92%'
+                },
+                interfaces: [
+                    { name: 'Gi0/1', ip: 'N/A', status: 'Up', type: 'Mycelial Link', speed: '1 Gbps', connected: 'NR-E' },
+                    { name: 'Gi0/2', ip: 'N/A', status: 'Up', type: 'Mycelial Link', speed: '1 Gbps', connected: 'DNA-Store' },
+                    { name: 'Gi0/3', ip: 'N/A', status: 'Up', type: 'Mycelial Link', speed: '1 Gbps', connected: 'NR-F' },
+                    { name: 'Gi0/4', ip: 'N/A', status: 'Up', type: 'Mycelial Link', speed: '1 Gbps', connected: 'PC-Bio1' },
+                    { name: 'Gi0/5', ip: 'N/A', status: 'Up', type: 'Mycelial Link', speed: '1 Gbps', connected: 'PC-Bio2' }
+                ],
+                protocols: ['BLAP', 'MYCO-RIP', 'IEEE 802.1D'],
+                pythonModule: 'mycelial_mesh.py',
+                metrics: {
+                    portUtilization: '62%',
+                    macTable: '8 entries',
+                    vlan: 'VLAN 20 (BIO)',
+                    throughput: '1 Gbps'
+                },
+                connections: ['NR-D', 'NR-E', 'DNA-Store', 'NR-F', 'PC-Bio1', 'PC-Bio2']
+            },
+            
+            'DNA-Store': {
+                name: 'DNA Data Lake',
+                zone: 'bio',
+                type: 'pc',
+                ip: '10.0.2.2',
+                role: 'PC - DNA Data Lake',
+                function: 'DNA data lake providing persistent molecular storage. All network state snapshots encoded using Reed-Solomon error correction and synthetic DNA strands. Storage capacity: 10^18 bytes per cubic centimetre.',
+                hardware: 'DNA-OS 1.4 / CRISPR Array',
+                status: 'Active',
+                uptime: '99.99%',
+                bio: {
+                    encoding: 'Reed-Solomon ECC (255,223)',
+                    density: '10^18 bytes/cc',
+                    method: 'CRISPR-Write',
+                    gcContent: '52%',
+                    stability: '500+ years'
+                },
+                interfaces: [
+                    { name: 'NIC0', ip: '10.0.2.2', status: 'Up', type: 'Ethernet', speed: '1 Gbps' },
+                    { name: 'BIO-NIC', ip: 'N/A', status: 'Up', type: 'DNA Interface', speed: '2.1 GB/s' }
+                ],
+                protocols: ['DNA-STORE', 'Reed-Solomon', 'CRISPR-WRITE'],
+                pythonModule: 'dna_store.py',
+                metrics: {
+                    writeLatency: '800 ms',
+                    throughput: '2.1 GB/s',
+                    errorRate: '< 1e-8',
+                    storageUsed: '34%',
+                    totalCapacity: '215 PB/gram'
+                },
+                connections: ['SW-BIO']
+            },
+            
+            'NR-E': {
+                name: 'Bio Processing Node E',
+                zone: 'bio',
+                type: 'pc',
+                ip: '10.0.2.1',
+                role: 'PC - Bio Processing Node',
+                function: 'Bio-zone processing node. Acts as a neural repeater endpoint within the mycelial fabric. Routes processed signals toward DNA-Store for long-term molecular encoding.',
+                hardware: 'BRNA-PC-OS 1.0',
+                status: 'Active',
+                uptime: '99.1%',
+                coherence: '89%',
+                quantum: {
+                    spinState: '↓↓ Monitor',
+                    microtubuleClass: 'Class-B',
+                    frequency: '38 Hz',
+                    orchOR: 'Passive'
+                },
+                interfaces: [
+                    { name: 'NIC0', ip: '10.0.2.1', status: 'Up', type: 'Ethernet', speed: '100 Mbps' }
+                ],
+                protocols: ['QSP', 'DNA-STORE'],
+                pythonModule: 'dna_store.py',
+                metrics: {
+                    latency: '3.2 ms',
+                    throughput: '100 Mbps',
+                    packetLoss: '0.05%',
+                    qFidelity: '89.0%'
+                },
+                connections: ['SW-BIO']
+            },
+            
+            'NR-F': {
+                name: 'Bio Processing Node F',
+                zone: 'bio',
+                type: 'pc',
+                ip: '10.0.2.3',
+                role: 'PC - Bio Output Node',
+                function: 'Bio zone output node. Handles egress signals from the mycelial fabric back to the router core. Third end-node on SW-BIO providing redundant bio-zone coverage.',
+                hardware: 'BRNA-PC-OS 1.0',
+                status: 'Active',
+                uptime: '98.5%',
+                coherence: '87%',
+                quantum: {
+                    spinState: '↑↓ Monitor',
+                    microtubuleClass: 'Class-C',
+                    frequency: '37 Hz',
+                    orchOR: 'Passive'
+                },
+                interfaces: [
+                    { name: 'NIC0', ip: '10.0.2.3', status: 'Up', type: 'Ethernet', speed: '100 Mbps' }
+                ],
+                protocols: ['QSP', 'MYCO-RIP'],
+                pythonModule: 'mycelial_mesh.py',
+                metrics: {
+                    latency: '3.5 ms',
+                    throughput: '100 Mbps',
+                    packetLoss: '0.06%',
+                    qFidelity: '87.0%'
+                },
+                connections: ['SW-BIO']
+            },
+            
+            'PC-Bio1': {
+                name: 'Bio Monitor Workstation 1',
+                zone: 'bio',
+                type: 'pc',
+                ip: '10.0.2.4',
+                role: 'PC - Bio Monitor Workstation',
+                function: 'Bio zone monitoring workstation. Runs coherence dashboard and monitors DNA encoding health. Logs all write operations to the DNA-Store node for audit purposes.',
+                hardware: 'Ubuntu 22.04 LTS',
+                status: 'Active',
+                uptime: '95.2%',
+                bio: {
+                    dashboard: 'http://10.0.2.4:8080',
+                    logging: 'coherence.log',
+                    alerts: 'Enabled',
+                    monitoringInterval: '100 ms'
+                },
+                interfaces: [
+                    { name: 'eth0', ip: '10.0.2.4', status: 'Up', type: 'Ethernet', speed: '100 Mbps' }
+                ],
+                protocols: ['HTTP', 'SSH', 'SNMP'],
+                pythonModule: 'dashboard.py',
+                metrics: {
+                    latency: '5 ms',
+                    throughput: '100 Mbps',
+                    packetLoss: '0.1%',
+                    storageUsed: '22%'
+                },
+                connections: ['SW-BIO']
+            },
+            
+            'PC-Bio2': {
+                name: 'Reed-Solomon Test Node',
+                zone: 'bio',
+                type: 'pc',
+                ip: '10.0.2.5',
+                role: 'PC - Reed-Solomon Test Node',
+                function: 'Reed-Solomon error correction test node. Encodes synthetic payloads, introduces controlled bit errors, then verifies recovery. Used to validate the DNA encoding pipeline.',
+                hardware: 'Ubuntu 22.04 LTS',
+                status: 'Active',
+                uptime: '94.8%',
+                bio: {
+                    rsSymbols: '255,223',
+                    errorCap: '16 symbols',
+                    testCycles: '8,412',
+                    successRate: '99.97%'
+                },
+                interfaces: [
+                    { name: 'eth0', ip: '10.0.2.5', status: 'Up', type: 'Ethernet', speed: '100 Mbps' }
+                ],
+                protocols: ['DNA-STORE', 'Reed-Solomon'],
+                pythonModule: 'dna_store.py (test harness)',
+                metrics: {
+                    latency: '5 ms',
+                    throughput: '100 Mbps',
+                    decodeRate: '99.97%',
+                    testCycles: '8,412'
+                },
+                connections: ['SW-BIO']
+            },
+            
+            // HITL ZONE - HUMAN GOVERNANCE
+            'SW-HITL': {
+                name: 'Governance Fabric Switch',
+                zone: 'hitl',
+                type: 'switch',
+                ip: '10.0.3.0/24',
+                role: 'Switch - HITL Governance Fabric',
+                function: 'HITL governance switch. All human-oversight traffic passes through here. PPP causality filter drops packets that would create temporal paradoxes in the Orch OR model.',
+                hardware: 'Cisco IOS 2960 / Governance-OS',
+                status: 'Active',
+                uptime: '99.9%',
+                bio: {
+                    pppFilter: 'Enabled',
+                    ethicsEngine: 'v2.3',
+                    auditLog: 'Active',
+                    paradoxProtection: 'Real-time'
+                },
+                interfaces: [
+                    { name: 'Gi0/1', ip: 'N/A', status: 'Up', type: 'Ethernet', speed: '1 Gbps', connected: 'HITL-GW' },
+                    { name: 'Gi0/2', ip: 'N/A', status: 'Up', type: 'Ethernet', speed: '1 Gbps', connected: 'Monitor-1' },
+                    { name: 'Gi0/3', ip: 'N/A', status: 'Up', type: 'Ethernet', speed: '1 Gbps', connected: 'Monitor-2' },
+                    { name: 'Gi0/4', ip: 'N/A', status: 'Up', type: 'Ethernet', speed: '1 Gbps', connected: 'PC-HITL1' },
+                    { name: 'Gi0/5', ip: 'N/A', status: 'Up', type: 'Ethernet', speed: '1 Gbps', connected: 'PC-HITL2' }
+                ],
+                protocols: ['HITL-CTRL', 'PPP', 'IEEE 802.1D'],
+                pythonModule: 'dashboard.py',
+                metrics: {
+                    portUtilization: '40%',
+                    macTable: '6 entries',
+                    vlan: 'VLAN 30 (HITL)',
+                    throughput: '1 Gbps'
+                },
+                connections: ['NR-D', 'HITL-GW', 'Monitor-1', 'Monitor-2', 'PC-HITL1', 'PC-HITL2']
+            },
+            
+            'HITL-GW': {
+                name: 'Human Override Gateway',
+                zone: 'hitl',
+                type: 'pc',
+                ip: '10.0.3.1',
+                role: 'PC - Human Override Gateway',
+                function: 'Human override gateway. All HITL-CTRL frames must be approved here before forwarding. Implements the Paradox Prevention Protocol (PPP). Human operator has 30 seconds to approve or deny flagged packets.',
+                hardware: 'HITL-OS 2.0',
+                status: 'Standby',
+                uptime: '99.8%',
+                bio: {
+                    ethicsEngine: 'v2.3 (IEEE-7000)',
+                    lastOverride: '04:32:11',
+                    pendingReview: '0',
+                    dashboardPort: '8080',
+                    consensusPolicy: '2-of-2'
+                },
+                interfaces: [
+                    { name: 'eth0', ip: '10.0.3.1', status: 'Up', type: 'Ethernet', speed: '1 Gbps' },
+                    { name: 'mgmt', ip: '10.0.0.1', status: 'Up', type: 'Management', speed: '100 Mbps' }
+                ],
+                protocols: ['HITL-CTRL', 'REST-API', 'WebSocket', 'Ethics-Check', 'PPP'],
+                pythonModule: 'dashboard.py',
+                metrics: {
+                    overrideEvents: '3',
+                    ethicsFlags: '1',
+                    approvalTimeout: '30 s',
+                    avgResponseTime: '12.4 s'
+                },
+                connections: ['SW-HITL']
+            },
+            
+            'Monitor-1': {
+                name: 'Fidelity Monitor',
+                zone: 'hitl',
+                type: 'pc',
+                ip: '10.0.3.2',
+                role: 'PC - Fidelity Monitor',
+                function: 'Real-time quantum fidelity monitor. Samples coherence metrics from all nodes every millisecond. Triggers HITL-GW alert if any node drops below 85% fidelity threshold.',
+                hardware: 'Ubuntu 22.04 LTS',
+                status: 'Active',
+                uptime: '99.5%',
+                bio: {
+                    samplingRate: '1,000 samples/s',
+                    fidelityThreshold: '85%',
+                    alertsSent: '12',
+                    baseline: '97% (NR-D ref)'
+                },
+                interfaces: [
+                    { name: 'eth0', ip: '10.0.3.2', status: 'Up', type: 'Ethernet', speed: '1 Gbps' }
+                ],
+                protocols: ['SNMP', 'HTTP', 'SSH'],
+                pythonModule: 'dashboard.py (fidelity)',
+                metrics: {
+                    samplingRate: '1,000/s',
+                    fidelityThreshold: '85%',
+                    alertsSent: '12',
+                    grafanaExport: 'Enabled'
+                },
+                connections: ['SW-HITL']
+            },
+            
+            'Monitor-2': {
+                name: 'Ethics Audit Node',
+                zone: 'hitl',
+                type: 'pc',
+                ip: '10.0.3.3',
+                role: 'PC - Ethics Audit Node',
+                function: 'Ethics audit logging node. Monitors all routing decisions against IEEE-7000 ruleset. Any routing decision involving >95% Orch OR collapse must be logged here for post-hoc human review.',
+                hardware: 'Ubuntu 22.04 LTS',
+                status: 'Active',
+                uptime: '99.3%',
+                bio: {
+                    ruleset: 'IEEE-7000 + custom',
+                    retention: '90 days',
+                    reportFormat: 'PDF/HTML',
+                    lastAudit: '04:45:00'
+                },
+                interfaces: [
+                    { name: 'eth0', ip: '10.0.3.3', status: 'Up', type: 'Ethernet', speed: '1 Gbps' }
+                ],
+                protocols: ['SNMP', 'HTTP', 'Syslog'],
+                pythonModule: 'dashboard.py (ethics)',
+                metrics: {
+                    rulesLoaded: '47',
+                    violations: '0',
+                    lastAudit: '04:45:00',
+                    auditFrequency: 'Hourly'
+                },
+                connections: ['SW-HITL']
+            },
+            
+            'PC-HITL1': {
+                name: 'Human Operator Terminal 1',
+                zone: 'hitl',
+                type: 'pc',
+                ip: '10.0.3.4',
+                role: 'PC - Human Operator Terminal 1 (Day Shift)',
+                function: 'Human operator terminal 1 - day shift. Operator reviews flagged packets on the HITL-GW dashboard. At small test scale this is feasible. Part of the 2-of-2 consensus policy.',
+                hardware: 'Ubuntu 22.04 LTS',
+                status: 'Active',
+                uptime: '90.0%',
+                bio: {
+                    operator: 'Day shift',
+                    access: 'HITL-GW write',
+                    sessionTime: '6h 12m',
+                    actionsToday: '14'
+                },
+                interfaces: [
+                    { name: 'eth0', ip: '10.0.3.4', status: 'Up', type: 'Ethernet', speed: '1 Gbps' }
+                ],
+                protocols: ['HTTP', 'SSH', 'REST-API'],
+                pythonModule: 'dashboard.py (operator UI)',
+                metrics: {
+                    sessionTime: '6h 12m',
+                    actionsToday: '14',
+                    pendingApproval: '0',
+                    avgDecisionTime: '4.2 s'
+                },
+                connections: ['SW-HITL']
+            },
+            
+            'PC-HITL2': {
+                name: 'Human Operator Terminal 2',
+                zone: 'hitl',
+                type: 'pc',
+                ip: '10.0.3.5',
+                role: 'PC - Human Operator Terminal 2 (Night/Failover)',
+                function: 'Human operator terminal 2 - standby / night shift. When both operators are online, HITL-GW uses a 2-of-2 consensus policy for critical overrides.',
+                hardware: 'Ubuntu 22.04 LTS',
+                status: 'Idle',
+                uptime: '85.0%',
+                bio: {
+                    operator: 'Night shift / failover',
+                    access: 'HITL-GW write',
+                    sessionTime: '0h 0m',
+                    actionsToday: '0'
+                },
+                interfaces: [
+                    { name: 'eth0', ip: '10.0.3.5', status: 'Up', type: 'Ethernet', speed: '1 Gbps' }
+                ],
+                protocols: ['HTTP', 'SSH', 'REST-API'],
+                pythonModule: 'dashboard.py (operator UI)',
+                metrics: {
+                    sessionTime: '0h 0m',
+                    actionsToday: '0',
+                    pendingApproval: '0',
+                    failoverReady: 'Yes'
+                },
+                connections: ['SW-HITL']
+            },
+            
+            // ENTANGLEMENT ZONE - QUANTUM NODES
+            'QNode-A': {
+                name: 'Quantum Node A',
+                zone: 'entangle',
+                type: 'qnode',
+                ip: '10.0.4.1',
+                role: 'QNode - Entangled Pair 1A',
+                function: 'Quantum node A - paired with QNode-B via Bell state |Φ+⟩. Measurement on A instantly determines state of B. No IP routing between paired nodes - purely quantum channel via QSP.',
+                hardware: 'QSP-OS 0.9 (experimental)',
+                status: 'Active',
+                uptime: '92.1%',
+                coherence: '99%',
+                quantum: {
+                    bellState: '|Φ+⟩',
+                    partner: 'QNode-B',
+                    chshValue: '2.82',
+                    fidelity: '99.1%',
+                    decoherence: '< 1 ns'
+                },
+                interfaces: [
+                    { name: 'qif0', ip: '10.0.4.1', status: 'Entangled', type: 'Quantum Interface', speed: '∞ (zero latency)' }
+                ],
+                protocols: ['QSP', 'Bell-State', 'CHSH'],
+                pythonModule: 'qsp_protocol.py',
+                metrics: {
+                    latency: '~0 ms (non-local)',
+                    bellState: '|Φ+⟩',
+                    fidelity: '99.1%',
+                    entanglementAge: '2.3 hours'
+                },
+                connections: ['QNode-B']
+            },
+            
+            'QNode-B': {
+                name: 'Quantum Node B',
+                zone: 'entangle',
+                type: 'qnode',
+                ip: '10.0.4.2',
+                role: 'QNode - Entangled Pair 1B + Swap',
+                function: 'Quantum node B - paired with A, also performs entanglement swapping with QNode-C. A↔B + B↔C → A↔C link created. This is how quantum networks extend range without classical signal degradation.',
+                hardware: 'QSP-OS 0.9 (experimental)',
+                status: 'Active',
+                uptime: '92.1%',
+                coherence: '99%',
+                quantum: {
+                    bellState: '|Φ+⟩',
+                    partner: 'QNode-A',
+                    swapTarget: 'QNode-C',
+                    swapSuccess: '94%',
+                    chshValue: '2.82'
+                },
+                interfaces: [
+                    { name: 'qif0', ip: '10.0.4.2', status: 'Entangled', type: 'Quantum Interface (with A)', speed: '∞' },
+                    { name: 'qif1', ip: '10.0.4.2', status: 'Swapping', type: 'Quantum Interface (with C)', speed: '∞' }
+                ],
+                protocols: ['QSP', 'Bell-State', 'Entanglement-Swap'],
+                pythonModule: 'qsp_protocol.py',
+                metrics: {
+                    latency: '~0 ms',
+                    bellState: '|Φ+⟩',
+                    fidelity: '99.0%',
+                    swapSuccess: '94%'
+                },
+                connections: ['QNode-A', 'QNode-C']
+            },
+            
+            'QNode-C': {
+                name: 'Quantum Node C',
+                zone: 'entangle',
+                type: 'qnode',
+                ip: '10.0.4.3',
+                role: 'QNode - Entangled Pair 2A',
+                function: 'Quantum node C - second entangled pair. Paired with QNode-D via |Ψ-⟩ Bell state. Also receives swapped entanglement from QNode-B, extending quantum range from A to D.',
+                hardware: 'QSP-OS 0.9 (experimental)',
+                status: 'Active',
+                uptime: '91.8%',
+                coherence: '98%',
+                quantum: {
+                    bellState: '|Ψ-⟩',
+                    partner: 'QNode-D',
+                    chshValue: '2.79',
+                    swapPartner: 'QNode-B'
+                },
+                interfaces: [
+                    { name: 'qif0', ip: '10.0.4.3', status: 'Entangled', type: 'Quantum Interface (with D)', speed: '∞' }
+                ],
+                protocols: ['QSP', 'Bell-State', 'CHSH'],
+                pythonModule: 'qsp_protocol.py',
+                metrics: {
+                    latency: '~0 ms',
+                    bellState: '|Ψ-⟩',
+                    fidelity: '98.3%',
+                    decoherence: '< 2 ns'
+                },
+                connections: ['QNode-B', 'QNode-D']
+            },
+            
+            'QNode-D': {
+                name: 'Quantum Node D',
+                zone: 'entangle',
+                type: 'qnode',
+                ip: '10.0.4.4',
+                role: 'QNode - Entangled Pair 2B',
+                function: 'Quantum node D - chain endpoint. Through swapping chain A↔B, B↔C, C↔D, QNode-A and QNode-D effectively share a quantum link with no classical routing overhead.',
+                hardware: 'QSP-OS 0.9 (experimental)',
+                status: 'Active',
+                uptime: '91.5%',
+                coherence: '98%',
+                quantum: {
+                    bellState: '|Ψ-⟩',
+                    partner: 'QNode-C',
+                    chshValue: '2.78',
+                    chainEnd: 'A→B→C→D'
+                },
+                interfaces: [
+                    { name: 'qif0', ip: '10.0.4.4', status: 'Entangled', type: 'Quantum Interface (with C)', speed: '∞' }
+                ],
+                protocols: ['QSP', 'Bell-State', 'CHSH'],
+                pythonModule: 'qsp_protocol.py',
+                metrics: {
+                    latency: '~0 ms',
+                    bellState: '|Ψ-⟩',
+                    fidelity: '98.1%',
+                    chainLength: '4 nodes'
+                },
+                connections: ['QNode-C']
+            }
+        };
+
+        // Zone information
+        const zones = {
+            core: {
+                name: 'CORE ZONE - Neural Repeaters',
+                color: '#1a6faf',
+                description: 'The core processing zone containing neural repeater routers that maintain quantum coherence. Each router uses microtubule bundles to process quantum information via Orch OR.',
+                ipRange: '10.0.1.0/24',
+                nodes: ['NR-A', 'NR-B', 'NR-C', 'NR-D'],
+                function: 'Primary quantum processing and routing. All inter-zone traffic passes through NR-D hub.',
+                protocols: ['QSP - Quantum Sensory Protocol', 'MYCO-RIP - Mycelial Routing', 'SPIN-BRIDGE - Spin state conversion'],
+                critical: 'Maintains quantum coherence between 88-97% for reliable quantum operations.'
+            },
+            bio: {
+                name: 'BIO ZONE - DNA Storage & Mycelial Mesh',
+                color: '#6b3fa0',
+                description: 'Biological storage and processing zone featuring DNA data lakes and mycelial network switches. Provides massive storage density and self-healing capabilities.',
+                ipRange: '10.0.2.0/24',
+                nodes: ['SW-BIO', 'NR-E', 'DNA-Store', 'NR-F', 'PC-Bio1', 'PC-Bio2'],
+                function: 'Long-term data persistence using DNA encoding and mycelial-based self-healing network fabric.',
+                protocols: ['DNA-STORE - DNA encoding', 'Reed-Solomon - Error correction', 'BLAP - Bio-Link Access Protocol', 'MYCO-RIP - Mycelial routing'],
+                critical: 'DNA storage achieves 10^18 bytes/cc density. Mycelial mesh self-heals in <50ms.'
+            },
+            hitl: {
+                name: 'HITL ZONE - Human Governance',
+                color: '#7a5c00',
+                description: 'Human-in-the-loop governance zone where operators monitor and override critical decisions. Implements ethical oversight and paradox prevention.',
+                ipRange: '10.0.3.0/24',
+                nodes: ['SW-HITL', 'HITL-GW', 'Monitor-1', 'Monitor-2', 'PC-HITL1', 'PC-HITL2'],
+                function: 'Ethical governance, paradox prevention, and human oversight of critical quantum routing decisions.',
+                protocols: ['HITL-CTRL - Human override', 'PPP - Paradox Prevention Protocol', 'Ethics Engine v2.3', 'IEEE-7000 compliance'],
+                critical: 'Prevents causality violations and ensures ethical AI operation with 2-of-2 consensus.'
+            },
+            entangle: {
+                name: 'ENTANGLEMENT ZONE - Quantum Network',
+                color: '#2d7a4f',
+                description: 'Pure quantum zone where nodes communicate via entanglement. Provides zero-latency communication across any distance.',
+                ipRange: '10.0.4.0/24',
+                nodes: ['QNode-A', 'QNode-B', 'QNode-C', 'QNode-D'],
+                function: 'Quantum entanglement distribution and swapping for non-local communication.',
+                protocols: ['QSP - Quantum Sensory Protocol', 'Bell State Management', 'Entanglement Swapping', 'CHSH Testing'],
+                critical: 'Zero-latency communication demonstrated via CHSH values >2.7, proving quantum entanglement.'
+            }
+        };
+
+        // Canvas setup (simplified - you can reuse the canvas code from previous version)
+        const canvas = document.getElementById('topologyCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Node positions (same as previous version)
+        const nodePositions = {
+            'NR-A': { x: 200, y: 120 },
+            'NR-B': { x: 450, y: 120 },
+            'NR-C': { x: 700, y: 120 },
+            'NR-D': { x: 450, y: 220 },
+            'SW-BIO': { x: 250, y: 350 },
+            'NR-E': { x: 120, y: 430 },
+            'DNA-Store': { x: 250, y: 480 },
+            'NR-F': { x: 380, y: 430 },
+            'PC-Bio1': { x: 120, y: 530 },
+            'PC-Bio2': { x: 380, y: 530 },
+            'SW-HITL': { x: 650, y: 350 },
+            'HITL-GW': { x: 520, y: 430 },
+            'Monitor-1': { x: 600, y: 430 },
+            'Monitor-2': { x: 680, y: 430 },
+            'PC-HITL1': { x: 570, y: 530 },
+            'PC-HITL2': { x: 730, y: 530 },
+            'QNode-A': { x: 200, y: 620 },
+            'QNode-B': { x: 350, y: 620 },
+            'QNode-C': { x: 550, y: 620 },
+            'QNode-D': { x: 700, y: 620 }
+        };
+
+        // Links (same as previous)
+        const links = [
+            { from: 'NR-A', to: 'NR-B', type: 'serial' },
+            { from: 'NR-B', to: 'NR-C', type: 'serial' },
+            { from: 'NR-A', to: 'NR-D', type: 'eth' },
+            { from: 'NR-B', to: 'NR-D', type: 'eth' },
+            { from: 'NR-C', to: 'NR-D', type: 'eth' },
+            { from: 'NR-D', to: 'SW-BIO', type: 'eth' },
+            { from: 'NR-D', to: 'SW-HITL', type: 'eth' },
+            { from: 'SW-BIO', to: 'NR-E', type: 'eth' },
+            { from: 'SW-BIO', to: 'DNA-Store', type: 'eth' },
+            { from: 'SW-BIO', to: 'NR-F', type: 'eth' },
+            { from: 'SW-BIO', to: 'PC-Bio1', type: 'eth' },
+            { from: 'SW-BIO', to: 'PC-Bio2', type: 'eth' },
+            { from: 'SW-HITL', to: 'HITL-GW', type: 'eth' },
+            { from: 'SW-HITL', to: 'Monitor-1', type: 'eth' },
+            { from: 'SW-HITL', to: 'Monitor-2', type: 'eth' },
+            { from: 'SW-HITL', to: 'PC-HITL1', type: 'eth' },
+            { from: 'SW-HITL', to: 'PC-HITL2', type: 'eth' },
+            { from: 'QNode-A', to: 'QNode-B', type: 'quantum' },
+            { from: 'QNode-C', to: 'QNode-D', type: 'quantum' },
+            { from: 'QNode-B', to: 'QNode-C', type: 'swap' }
+        ];
+
+        // Zone colors
+        const zoneColors = {
+            core: { border: '#1a6faf', fill: 'rgba(26,111,175,0.1)' },
+            bio: { border: '#6b3fa0', fill: 'rgba(107,63,160,0.1)' },
+            hitl: { border: '#7a5c00', fill: 'rgba(122,92,0,0.1)' },
+            entangle: { border: '#2d7a4f', fill: 'rgba(45,122,79,0.1)' }
+        };
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel-content').forEach(p => p.style.display = 'none');
+            
+            if (tabName === 'zones') {
+                document.querySelector('.tab').classList.add('active');
+                document.getElementById('zonePanel').style.display = 'block';
+                renderZonesPanel();
+            } else if (tabName === 'nodes') {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('nodePanel').style.display = 'block';
+                renderNodesPanel();
+            } else if (tabName === 'protocols') {
+                document.querySelectorAll('.tab')[2].classList.add('active');
+                document.getElementById('protocolPanel').style.display = 'block';
+                renderProtocolsPanel();
+            }
+        }
+
+        // Render Zones Panel
+        function renderZonesPanel() {
+            const panel = document.getElementById('zonePanel');
+            let html = '';
+            
+            Object.entries(zones).forEach(([zoneId, zone]) => {
+                html += `
+                    <div class="zone-card ${zoneId}">
+                        <div class="zone-title">
+                            <span>${zone.name}</span>
+                            <span class="zone-badge badge-${zoneId}">${zone.nodes.length} nodes</span>
+                        </div>
+                        <p style="color: #4a5568; margin-bottom: 15px; font-size: 0.95em;">${zone.description}</p>
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-weight: 600; color: #1a1d21; margin-bottom: 5px;">🌐 IP Range:</div>
+                            <div style="color: #4a5568; font-family: monospace;">${zone.ipRange}</div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-weight: 600; color: #1a1d21; margin-bottom: 5px;">🎯 Function:</div>
+                            <div style="color: #4a5568;">${zone.function}</div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-weight: 600; color: #1a1d21; margin-bottom: 5px;">📡 Protocols:</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                ${zone.protocols.map(p => `<span class="protocol-tag protocol-qsp">${p}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: #1a1d21; margin-bottom: 5px;">🔧 Critical:</div>
+                            <div style="color: #4a5568; font-size: 0.9em; background: white; padding: 10px; border-radius: 6px;">
+                                ${zone.critical}
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <div style="font-weight: 600; color: #1a1d21; margin-bottom: 5px;">📋 Nodes in zone:</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                ${zone.nodes.map(nodeId => {
+                                    const node = nodeDatabase[nodeId];
+                                    return `<span class="protocol-tag" style="background: ${zoneColors[zoneId].fill}; border: 1px solid ${zoneColors[zoneId].border}; color: ${zoneColors[zoneId].border}; cursor: pointer;" onclick="showNodeDetail('${nodeId}')">${nodeId} (${node.role.split('-')[0]})</span>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            panel.innerHTML = html;
+        }
+
+        // Render Nodes Panel
+        function renderNodesPanel() {
+            const panel = document.getElementById('nodePanel');
+            let html = '<div style="padding: 10px;">';
+            
+            // Group nodes by zone
+            const zones_ordered = ['core', 'bio', 'hitl', 'entangle'];
+            zones_ordered.forEach(zoneId => {
+                const zoneNodes = Object.entries(nodeDatabase).filter(([_, node]) => node.zone === zoneId);
+                
+                html += `
+                    <div style="margin-bottom: 25px;">
+                        <h3 style="color: ${zoneColors[zoneId].border}; border-bottom: 2px solid ${zoneColors[zoneId].border}; padding-bottom: 8px; margin-bottom: 15px;">
+                            ${zones[zoneId].name} (${zoneNodes.length})
+                        </h3>
+                        <ul class="node-list">
+                `;
+                
+                zoneNodes.forEach(([nodeId, node]) => {
+                    html += `
+                        <li class="node-item" onclick="showNodeDetail('${nodeId}')">
+                            <div class="node-header">
+                                <span class="node-name">${nodeId}</span>
+                                <span class="node-type">${node.type}</span>
+                            </div>
+                            <div class="node-role">${node.role}</div>
+                            <div style="font-size: 0.85em; color: #4a5568; margin-bottom: 8px;">
+                                ${node.function.substring(0, 100)}...
+                            </div>
+                            <div class="node-protocols">
+                                ${node.protocols.slice(0, 3).map(p => {
+                                    let protoClass = 'protocol-qsp';
+                                    if (p.includes('DNA')) protoClass = 'protocol-dna';
+                                    if (p.includes('HITL') || p.includes('PPP')) protoClass = 'protocol-hitl';
+                                    if (p.includes('BLAP')) protoClass = 'protocol-blap';
+                                    if (p.includes('MYCO')) protoClass = 'protocol-myc';
+                                    return `<span class="protocol-tag ${protoClass}">${p}</span>`;
+                                }).join('')}
+                                ${node.protocols.length > 3 ? `<span class="protocol-tag">+${node.protocols.length-3}</span>` : ''}
+                            </div>
+                            <div style="display: flex; gap: 15px; font-size: 0.8em; color: #8a94a0;">
+                                <span><span class="status-badge status-${node.status.toLowerCase()}"></span>${node.status}</span>
+                                <span>🔌 ${node.interfaces.length} ports</span>
+                                ${node.coherence ? `<span>⚛️ ${node.coherence}</span>` : ''}
+                            </div>
+                        </li>
+                    `;
+                });
+                
+                html += '</ul></div>';
+            });
+            
+            html += '</div>';
+            panel.innerHTML = html;
+        }
+
+        // Render Protocols Panel
+        function renderProtocolsPanel() {
+            const protocols = {
+                'QSP (Quantum Sensory Protocol)': {
+                    zone: 'All Zones',
+                    description: 'Intent-focused messaging protocol that uses phase synchronization instead of packet delivery. Mirrors human perception rather than binary logic.',
+                    layers: ['L5 - Galactic Application', 'Phase synchronization', 'Resonance-based handshake'],
+                    nodes: ['NR-A', 'NR-B', 'NR-C', 'NR-D', 'QNode-A', 'QNode-B', 'QNode-C', 'QNode-D']
+                },
+                'MYCO-RIP (Mycelial Routing)': {
+                    zone: 'Core, Bio',
+                    description: 'Routing protocol based on fungal growth algorithms. Provides self-healing capabilities and redundant path discovery.',
+                    layers: ['L3 - Network Layer', 'Based on Physarum polycephalum logic', 'Resonance cost metric'],
+                    nodes: ['NR-A', 'NR-B', 'NR-C', 'NR-D', 'SW-BIO', 'NR-E', 'NR-F']
+                },
+                'DNA-STORE': {
+                    zone: 'Bio',
+                    description: 'Molecular storage protocol for encoding digital data in synthetic DNA. Uses Reed-Solomon error correction.',
+                    layers: ['L1 - Physical', 'CRISPR-Write encoding', 'Reed-Solomon ECC (255,223)'],
+                    nodes: ['DNA-Store', 'PC-Bio2', 'NR-E']
+                },
+                'BLAP (Bio-Link Access Protocol)': {
+                    zone: 'Bio',
+                    description: 'Addressing protocol using 64-bit mitochondrial DNA sequences for node identification.',
+                    layers: ['L2 - Data Link', 'Mitochondrial addressing', 'Self-healing link management'],
+                    nodes: ['SW-BIO']
+                },
+                'HITL-CTRL': {
+                    zone: 'HITL',
+                    description: 'Human-in-the-loop control protocol for overriding critical routing decisions. Requires 2-of-2 consensus.',
+                    layers: ['L5 - Application', 'Ethics engine v2.3', 'IEEE-7000 compliance'],
+                    nodes: ['HITL-GW', 'PC-HITL1', 'PC-HITL2', 'SW-HITL']
+                },
+                'PPP (Paradox Prevention Protocol)': {
+                    zone: 'HITL',
+                    description: 'Prevents causality violations in non-local communication. Drops packets that would decrease local entropy beyond threshold.',
+                    layers: ['L5 - Security', 'Chronological guardrails', 'Entropy checking'],
+                    nodes: ['HITL-GW', 'SW-HITL']
+                },
+                'SPIN-BRIDGE': {
+                    zone: 'Core',
+                    description: 'Converts quantum spin states to classical bits. Implements SpinToBit() conversion logic.',
+                    layers: ['L4 - Quantum-Digital Bridge', '1 qubit → 2 classical bits', 'Superdense coding'],
+                    nodes: ['NR-A', 'NR-B', 'NR-D']
+                },
+                'Entanglement Swapping': {
+                    zone: 'Entangle',
+                    description: 'Extends quantum network range by linking non-adjacent nodes through intermediate entanglement.',
+                    layers: ['L3 - Network', 'Bell state management', 'CHSH testing'],
+                    nodes: ['QNode-B', 'QNode-C']
+                }
+            };
+
+            const panel = document.getElementById('protocolPanel');
+            let html = '<div style="padding: 15px;">';
+            
+            Object.entries(protocols).forEach(([name, info]) => {
+                html += `
+                    <div style="background: white; border-radius: 12px; padding: 18px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid ${zoneColors[info.zone.split(',')[0].toLowerCase()]?.border || '#1a6faf'};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h4 style="color: #1a1d21; font-size: 1.1em;">📡 ${name}</h4>
+                            <span class="zone-badge badge-${info.zone.split(',')[0].toLowerCase()}">${info.zone}</span>
+                        </div>
+                        <p style="color: #4a5568; margin-bottom: 15px; font-size: 0.95em;">${info.description}</p>
+                        <div style="margin-bottom: 12px;">
+                            <div style="font-weight: 600; color: #1a1d21; margin-bottom: 5px;">🔧 Implementation Layers:</div>
+                            <ul style="margin-left: 20px; color: #4a5568;">
+                                ${info.layers.map(l => `<li style="margin-bottom: 3px;">${l}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: #1a1d21; margin-bottom: 5px;">📋 Used by:</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                ${info.nodes.map(nodeId => {
+                                    const node = nodeDatabase[nodeId];
+                                    return `<span class="protocol-tag" style="background: ${zoneColors[node.zone].fill}; border: 1px solid ${zoneColors[node.zone].border}; color: ${zoneColors[node.zone].border}; cursor: pointer;" onclick="showNodeDetail('${nodeId}')">${nodeId}</span>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            panel.innerHTML = html;
+        }
+
+        // Show node detail
+        function showNodeDetail(nodeId) {
+            const node = nodeDatabase[nodeId];
+            if (!node) return;
+            
+            const zoneColor = zoneColors[node.zone].border;
+            
+            let html = `
+                <div style="margin-bottom: 20px;">
+                    <h2 style="color: ${zoneColor}; margin-bottom: 5px;">${nodeId}</h2>
+                    <p style="color: #4a5568; font-size: 1.1em;">${node.role}</p>
+                </div>
+                
+                <div class="detail-grid">
+                    <div class="detail-section">
+                        <h4>📋 Node Information</h4>
+                        <div class="detail-row">
+                            <span class="detail-label">Zone:</span>
+                            <span class="detail-value" style="color: ${zoneColor};">${node.zone.toUpperCase()}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Type:</span>
+                            <span class="detail-value">${node.type}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">IP/Subnet:</span>
+                            <span class="detail-value">${node.ip}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Status:</span>
+                            <span class="detail-value"><span class="status-badge status-${node.status.toLowerCase()}"></span>${node.status}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Uptime:</span>
+                            <span class="detail-value">${node.uptime || 'N/A'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Hardware:</span>
+                            <span class="detail-value">${node.hardware}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4>🎯 Function</h4>
+                        <p style="color: #4a5568; line-height: 1.5;">${node.function}</p>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4>📡 Protocols</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;">
+                            ${node.protocols.map(p => {
+                                let protoClass = 'protocol-qsp';
+                                if (p.includes('DNA')) protoClass = 'protocol-dna';
+                                if (p.includes('HITL') || p.includes('PPP')) protoClass = 'protocol-hitl';
+                                if (p.includes('BLAP')) protoClass = 'protocol-blap';
+                                if (p.includes('MYCO')) protoClass = 'protocol-myc';
+                                return `<span class="protocol-tag ${protoClass}">${p}</span>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4>🔌 Interfaces</h4>
+                        <ul class="interface-list">
+                            ${node.interfaces.map(i => `
+                                <li class="interface-item">
+                                    <span><strong>${i.name}</strong> (${i.type})</span>
+                                    <span style="color: ${i.status === 'Up' ? '#2d7a4f' : '#c0392b'};">${i.status}</span>
+                                </li>
+                                <li style="font-size: 0.85em; color: #4a5568; margin-left: 20px; margin-bottom: 5px;">
+                                    IP: ${i.ip} | Speed: ${i.speed}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            // Add quantum section if applicable
+            if (node.quantum) {
+                html += `
+                    <div class="detail-section" style="margin-top: 20px;">
+                        <h4>⚛️ Quantum State</h4>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            ${Object.entries(node.quantum).map(([key, value]) => `
+                                <div class="detail-row">
+                                    <span class="detail-label">${key}:</span>
+                                    <span class="detail-value">${value}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Add bio section if applicable
+            if (node.bio) {
+                html += `
+                    <div class="detail-section" style="margin-top: 20px;">
+                        <h4>🧬 Biological Metrics</h4>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            ${Object.entries(node.bio).map(([key, value]) => `
+                                <div class="detail-row">
+                                    <span class="detail-label">${key}:</span>
+                                    <span class="detail-value">${value}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Add metrics
+            html += `
+                <div class="detail-section" style="margin-top: 20px;">
+                    <h4>📊 Performance Metrics</h4>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                        ${Object.entries(node.metrics || {}).map(([key, value]) => `
+                            <div class="detail-row">
+                                <span class="detail-label">${key}:</span>
+                                <span class="detail-value">${value}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="detail-section" style="margin-top: 20px;">
+                    <h4>🔗 Connected to:</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        ${(node.connections || []).map(connId => {
+                            const connNode = nodeDatabase[connId];
+                            return `<span class="protocol-tag" style="background: ${zoneColors[connNode.zone].fill}; border: 1px solid ${zoneColors[connNode.zone].border}; color: ${zoneColors[connNode.zone].border}; cursor: pointer;" onclick="showNodeDetail('${connId}')">${connId} (${connNode.zone})</span>`;
+                        }).join('')}
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 10px; background: #f0f4f8; border-radius: 6px;">
+                    <span class="detail-label">Python Module:</span>
+                    <span class="detail-value" style="font-family: monospace;">${node.pythonModule}</span>
+                </div>
+            `;
+            
+            document.getElementById('nodeDetailContent').innerHTML = html;
+            document.getElementById('nodeDetailView').classList.add('active');
+            document.getElementById('detailNodeName').textContent = `${nodeId} - ${node.name}`;
+        }
+
+        function closeNodeDetail() {
+            document.getElementById('nodeDetailView').classList.remove('active');
+        }
+
+        // Canvas click handler
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            const mouseX = (e.clientX - rect.left) * scaleX;
+            const mouseY = (e.clientY - rect.top) * scaleY;
+            
+            // Check each node
+            Object.entries(nodePositions).forEach(([nodeId, pos]) => {
+                const distance = Math.sqrt(
+                    Math.pow(mouseX - pos.x, 2) + 
+                    Math.pow(mouseY - pos.y, 2)
+                );
+                
+                if (distance < 25) {
+                    showNodeDetail(nodeId);
+                }
+            });
+        });
+
+        // Highlight zone function
+        function highlightZone(zone) {
+            draw(); // Reset first
+            
+            ctx.save();
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = zoneColors[zone].border;
+            
+            Object.entries(nodePositions).forEach(([nodeId, pos]) => {
+                if (nodeDatabase[nodeId] && nodeDatabase[nodeId].zone === zone) {
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, 30, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+            
+            ctx.restore();
+        }
+
+        // Drawing functions (simplified - reuse from previous canvas code)
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw zones background
+            drawZones();
+            
+            // Draw links
+            drawLinks();
+            
+            // Draw nodes
+            drawNodes();
+        }
+
+        function drawZones() {
+            // Core zone
+            ctx.save();
+            ctx.fillStyle = zoneColors.core.fill;
+            ctx.strokeStyle = zoneColors.core.border;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.rect(100, 50, 750, 220);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = zoneColors.core.border;
+            ctx.font = 'bold 14px Inter, sans-serif';
+            ctx.fillText('CORE ZONE', 120, 80);
+            ctx.restore();
+
+            // Bio zone
+            ctx.save();
+            ctx.fillStyle = zoneColors.bio.fill;
+            ctx.strokeStyle = zoneColors.bio.border;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.rect(50, 300, 400, 290);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = zoneColors.bio.border;
+            ctx.font = 'bold 14px Inter, sans-serif';
+            ctx.fillText('BIO ZONE', 70, 330);
+            ctx.restore();
+
+            // HITL zone
+            ctx.save();
+            ctx.fillStyle = zoneColors.hitl.fill;
+            ctx.strokeStyle = zoneColors.hitl.border;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.rect(500, 300, 350, 290);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = zoneColors.hitl.border;
+            ctx.font = 'bold 14px Inter, sans-serif';
+            ctx.fillText('HITL ZONE', 520, 330);
+            ctx.restore();
+
+            // Entanglement zone
+            ctx.save();
+            ctx.fillStyle = zoneColors.entangle.fill;
+            ctx.strokeStyle = zoneColors.entangle.border;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.rect(100, 600, 750, 80);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = zoneColors.entangle.border;
+            ctx.font = 'bold 14px Inter, sans-serif';
+            ctx.fillText('ENTANGLEMENT ZONE', 120, 630);
+            ctx.restore();
+        }
+
+        function drawLinks() {
+            links.forEach(link => {
+                const from = nodePositions[link.from];
+                const to = nodePositions[link.to];
+                
+                ctx.save();
+                
+                switch(link.type) {
+                    case 'quantum':
+                        ctx.strokeStyle = '#2d7a4f';
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([8, 6]);
+                        break;
+                    case 'swap':
+                        ctx.strokeStyle = '#8a9a8a';
+                        ctx.lineWidth = 1.5;
+                        ctx.setLineDash([4, 6]);
+                        break;
+                    case 'serial':
+                        ctx.strokeStyle = '#8a94a0';
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([6, 4]);
+                        break;
+                    default:
+                        ctx.strokeStyle = '#b0bcc8';
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([]);
+                }
+                
+                ctx.beginPath();
+                ctx.moveTo(from.x, from.y);
+                ctx.lineTo(to.x, to.y);
+                ctx.stroke();
+                
+                ctx.restore();
+            });
+        }
+
+        function drawNodes() {
+            Object.entries(nodePositions).forEach(([nodeId, pos]) => {
+                const node = nodeDatabase[nodeId];
+                if (!node) return;
+                
+                const zoneColor = zoneColors[node.zone].border;
+                
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetY = 3;
+                
+                // Draw node shape based on type
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = zoneColor;
+                ctx.lineWidth = 3;
+                
+                switch(node.type) {
+                    case 'router':
+                        ctx.beginPath();
+                        ctx.moveTo(pos.x, pos.y - 20);
+                        ctx.lineTo(pos.x + 20, pos.y);
+                        ctx.lineTo(pos.x, pos.y + 20);
+                        ctx.lineTo(pos.x - 20, pos.y);
+                        ctx.closePath();
+                        break;
+                        
+                    case 'switch':
+                        ctx.beginPath();
+                        roundedRect(ctx, pos.x - 20, pos.y - 12, 40, 24, 5);
+                        break;
+                        
+                    case 'qnode':
+                        ctx.beginPath();
+                        ctx.arc(pos.x, pos.y, 18, 0, Math.PI * 2);
+                        break;
+                        
+                    default:
+                        ctx.beginPath();
+                        roundedRect(ctx, pos.x - 18, pos.y - 12, 36, 24, 4);
+                }
+                
+                ctx.fill();
+                ctx.stroke();
+                
+                // Node label
+                ctx.shadowBlur = 0;
+                ctx.font = 'bold 12px Inter, sans-serif';
+                ctx.fillStyle = '#1a1d21';
+                ctx.textAlign = 'center';
+                ctx.fillText(nodeId, pos.x, pos.y - 25);
+                
+                // Status dot
+                ctx.beginPath();
+                ctx.arc(pos.x + 15, pos.y - 15, 4, 0, Math.PI * 2);
+                ctx.fillStyle = node.status === 'Active' ? '#2d7a4f' : node.status === 'Standby' ? '#f59e0b' : '#8a94a0';
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                
+                ctx.restore();
+            });
+        }
+
+        function roundedRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+            return ctx;
+        }
+
+        // Initialize
+        draw();
+        renderZonesPanel();
+    </script>
+</body>
+</html>
