@@ -21,6 +21,7 @@ import {
   ListRestart
 } from "lucide-react";
 import TopologyCanvas from "@/components/TopologyCanvas";
+import { fetchTestScenarios, fetchStatus as apiFetchStatus, fetchTestStatus as apiFetchTestStatus, startSimulation as apiStartSimulation, runTestScenario as apiRunTestScenario, IS_DEMO } from "@/lib/api";
 
 // --- DATA ---
 const INITIAL_NODES = [
@@ -79,7 +80,7 @@ const zoneColors = {
   entangle: { border: '#10b981', fill: 'rgba(16, 185, 129, 0.1)', text: '#34d399' }
 };
 
-const API_BASE = "http://localhost:8000";
+// const API_BASE = "http://localhost:8000";
 
 // --- APP ---
 export default function BRNAPortal() {
@@ -96,16 +97,14 @@ export default function BRNAPortal() {
   const [testStatus, setTestStatus] = useState<any>({ status: 'idle' });
 
   useEffect(() => {
-    fetch(`${API_BASE}/test-scenarios`)
-      .then(res => res.json())
+    fetchTestScenarios()
       .then(setTestScenarios)
       .catch(console.error);
   }, []);
 
   const fetchStatus = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/status`);
-      const data = await res.json();
+      const data = await apiFetchStatus();
       
       setSimRunning(data.running);
       setProgress(data.progress);
@@ -134,8 +133,7 @@ export default function BRNAPortal() {
       }
       
       // Test status
-      const testRes = await fetch(`${API_BASE}/test-status`);
-      const testData = await testRes.json();
+      const testData = await apiFetchTestStatus();
       setTestStatus(testData);
 
     } catch (e) {
@@ -150,7 +148,7 @@ export default function BRNAPortal() {
 
   const startSimulation = async () => {
     try {
-      await fetch(`${API_BASE}/simulate`, { method: "POST" });
+      await apiStartSimulation();
       setLogs([{ msg: "Sim Engine Start Initiated...", type: "system" }]);
     } catch (e) {
       console.error("Failed to start simulation", e);
@@ -160,7 +158,7 @@ export default function BRNAPortal() {
   const runTestScenario = async (id: string) => {
     if (testStatus.running) return;
     try {
-      await fetch(`${API_BASE}/run-test/${id}`, { method: "POST" });
+      await apiRunTestScenario(id);
       setSidebarMode("tests");
       setSelectedNode(null);
     } catch (e) {
@@ -173,7 +171,12 @@ export default function BRNAPortal() {
   return (
     <main className="container mx-auto p-6 max-w-7xl min-h-screen flex flex-col gap-6 bg-[#050a14] text-slate-200">
       {/* HEADER */}
-      <header className="flex justify-between items-center glass-card p-6 border-b-4 border-blue-500/50 rounded-xl bg-slate-900/50 backdrop-blur-md">
+      <header className="flex justify-between items-center glass-card p-6 border-b-4 border-blue-500/50 rounded-xl bg-slate-900/50 backdrop-blur-md relative overflow-hidden">
+        {IS_DEMO && (
+          <div className="absolute top-0 right-0 bg-amber-500/20 text-amber-500 text-[10px] font-bold uppercase tracking-widest px-4 py-1 rounded-bl-lg border-b border-l border-amber-500/50 z-10">
+            DEMO MODE (Static)
+          </div>
+        )}
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
             <Globe className="text-white w-6 h-6 animate-pulse" />
