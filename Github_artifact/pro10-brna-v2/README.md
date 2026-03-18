@@ -10,11 +10,11 @@
 
 ระบบ Engine ถูกแบ่งย่อยออกเป็นโมดูลตาม Layer ทั้ง 5 ชั้น ดังนี้:
 
-*   **L5: Galactic Application** (`dashboard.py` / `mock_up.py`) - ควบคุมแอปพลิเคชันและการสุ่มตัวอย่างข้อมูล
-*   **L4: Quantum-Digital Bridge** (`hitl_gateway.py` / `spin_bridge.py`) - แปลงสถานะควอนตัมสปินให้เป็นข้อมูล Digital และการตรวจสอบโดยมนุษย์ (HITL - Human in the Loop)
-*   **L3: Interstellar Routing** (`routing.py`) - คำนวณเส้นทางข้ามมิติด้วย Resonance Cost ผ่านโปรโตคอล BRR
-*   **L2: Mycelial Mesh** (`mycelial_mesh.py`) - สร้างการเชื่อมต่อระดับ Data Link ด้วยราเส้นใย (BLAP Protocol) ที่จำลองการซ่อมแซมเครือข่ายอัตโนมัติ
-*   **L1: Bio-Physical** (`microtubule.py`) - จำลองท่อเส้นใยระดับเซลล์ การทำงานของ Orch OR และระบบความร้อน (Metabolic Cooling)
+- **L5: Galactic Application** (`dashboard.py` / `mock_up.py`) - ควบคุมแอปพลิเคชันและการสุ่มตัวอย่างข้อมูล
+- **L4: Quantum-Digital Bridge** (`hitl_gateway.py` / `spin_bridge.py`) - แปลงสถานะควอนตัมสปินให้เป็นข้อมูล Digital และการตรวจสอบโดยมนุษย์ (HITL - Human in the Loop)
+- **L3: Interstellar Routing** (`routing.py`) - คำนวณเส้นทางข้ามมิติด้วย Resonance Cost ผ่านโปรโตคอล BRR
+- **L2: Mycelial Mesh** (`mycelial_mesh.py`) - สร้างการเชื่อมต่อระดับ Data Link ด้วยราเส้นใย (BLAP Protocol) ที่จำลองการซ่อมแซมเครือข่ายอัตโนมัติ
+- **L1: Bio-Physical** (`microtubule.py`) - จำลองท่อเส้นใยระดับเซลล์ การทำงานของ Orch OR และระบบความร้อน (Metabolic Cooling)
 
 ---
 
@@ -31,25 +31,29 @@
 7. **Paradox Prevention (PPP)**: ทดสอบกรองแพ็กเก็ตที่ขัดแย้งกับหลักความเป็นเหตุเป็นผล (Causality) ของกาลเวลา
 8. **Metabolic Cooling Mode**: ทดสอบการรักษาความเย็นของระบบชีวภาพไม่ให้ Coherence ตก
 9. **Galactic Routing (Zero-Latency)**: จำลองการวิ่งของพัลส์ข้อมูลไปดาว Proxima Centauri โดยเทเลพอร์ตเชิงควอนตัม
-10. **Resonance Cost Routing**: ทดสอบอัลกอริทึม Modified Dijkstra ผ่าน C_R metric 
+10. **Resonance Cost Routing**: ทดสอบอัลกอริทึม Modified Dijkstra ผ่าน C_R metric
 
 ---
 
 ## 🛠️ วิธีการติดตั้งและการใช้งาน (Setup & Run)
 
-**สิ่งที่ต้องมี (Prerequisites):** 
+**สิ่งที่ต้องมี (Prerequisites):**
+
 - Python 3.10+
-- `pip install -r requirements.txt` (รวม NetworkX และ 라이บรารีประมวลผลอื่นๆ)
+- `pip install -r requirements.txt` (รวม NetworkX และ ไลบรารีประมวลผลอื่นๆ)
 
 **การรัน Test Cases ทั่วไป:**
 หากต้องการรันการจำลองสถานการณ์ทั้งหมดผ่าน Terminal ธรรมดา (Interactive TUI):
+
 ```bash
 # รันไฟล์ mock up menu
 python mock_up.py
 ```
-*(กรณีที่นำไปผูกกับ Web Portal, ไฟล์นี้และ `run_simulation.py` จะถูก Trigger ผ่าน API บน `main.py` อัตโนมัติ)*
+
+_(กรณีที่นำไปผูกกับ Web Portal, ไฟล์นี้และ `run_simulation.py` จะถูก Trigger ผ่าน API บน `main.py` อัตโนมัติ)_
 
 **การรัน Unit Tests:**
+
 ```bash
 # ตรวจสอบความถูกต้องของโมดูลทั้งหมด
 python -m pytest tests/

@@ -83,7 +83,7 @@ async def run_simulation_api(background_tasks: BackgroundTasks):
     return {"message": "Simulation started"}
 
 async def execute_simulation():
-    core_dir = "/home/shachi/repos/network_project/Github_artifact/pro10-brna-v2"
+    core_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Github_artifact", "pro10-brna-v2"))
     venv_python = os.path.join(core_dir, ".venv/bin/python3")
     
     process = await asyncio.create_subprocess_exec(
@@ -182,7 +182,7 @@ async def get_status():
 
 @app.post("/test")
 async def run_tests():
-    core_dir = "/home/shachi/repos/network_project/Github_artifact/pro10-brna-v2"
+    core_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Github_artifact", "pro10-brna-v2"))
     venv_python = os.path.join(core_dir, ".venv/bin/python3")
     
     result = subprocess.run([venv_python, "-m", "pytest", os.path.join(core_dir, "tests/")], 

@@ -18,9 +18,9 @@
 
 ## ⚙️ โครงสร้างเทคโนโลยี (Tech Stack)
 
-*   **Frontend**: Next.js (App Router), React, TailwindCSS, Framer Motion, HTML5 Canvas, Lucide Icons
-*   **Backend (API)**: FastAPI, Python `asyncio` สำหรับการจัดการ subprocess
-*   **Integration**: รันคำสั่งเชื่อมต่อไปยัง BRNA Core Engine ในโฟลเดอร์ `/Github_artifact/pro10-brna-v2` แบบเบื้องหลัง
+- **Frontend**: Next.js (App Router), React, TailwindCSS, Framer Motion, HTML5 Canvas, Lucide Icons
+- **Backend (API)**: FastAPI, Python `asyncio` สำหรับการจัดการ subprocess
+- **Integration**: รันคำสั่งเชื่อมต่อไปยัง BRNA Core Engine ในโฟลเดอร์ `/Github_artifact/pro10-brna-v2` แบบเบื้องหลัง
 
 ---
 
@@ -31,8 +31,9 @@
 ## ใช้งานด้วย Setup Scripts จาก Root (🚀 แนะนำ)
 
 หากรันโปรเจกต์จาก Root Directory สามารถใช้สคริปต์อัตโนมัติได้:
+
 ```bash
-cd /home/shachi/repos/network_project
+cd /path/to/project/network-BRNA
 ./setup.sh  # ติดตั้ง Requirements ของ FastAPI และ Next.js
 ./run.sh    # เปิดเซิร์ฟเวอร์ทั้งสองตัวพร้อมกัน
 ```
@@ -44,21 +45,24 @@ cd /home/shachi/repos/network_project
 เนื่องจากระบบนี้ประกอบด้วย 2 ฝั่ง (Frontend และ Backend) จะต้องรันทั้งคู่ขนานกัน:
 
 ### 1. เปิด BRNA Backend API (FastAPI)
+
 ตัว Backend ทำหน้าที่เชื่อมต่อกับ Python Core Engine และต้องรันผ่าน Virtual Environment ของ Core Engine ตลอดเวลา เพื่อให้มี Library ครบถ้วน (เช่น FastAPI, Uvicorn, Qiskit)
 
 ```bash
 # เปิด Terminal ช่องแรก
-cd /home/shachi/repos/network_project/brna-portal
+cd /path/to/project/network-BRNA/brna-portal
 
 # รันเซิร์ฟเวอร์ FastAPI บนเครื่อง ด้วย Python ของ venv ตัวหลัก
 ../Github_artifact/pro10-brna-v2/.venv/bin/python main.py
 ```
-*(Backend จะรันอยู่ที่พอร์ต `http://localhost:8000`)*
+
+_(Backend จะรันอยู่ที่พอร์ต `http://localhost:8000`)_
 
 ### 2. เปิด BRNA Frontend Portal (Next.js)
+
 ```bash
 # เปิด Terminal ช่องที่สอง
-cd /home/shachi/repos/network_project/brna-portal
+cd /path/to/project/network-BRNA/brna-portal
 
 # ติดตั้ง Dependencies ถ้ายังไม่ได้ทำ
 npm install
@@ -66,14 +70,15 @@ npm install
 # รันหน้าเว็บ
 npm run dev
 ```
-*(Frontend จะรันอยู่ที่พอร์ต `http://localhost:3000`)*
+
+_(Frontend จะรันอยู่ที่พอร์ต `http://localhost:3000`)_
 
 ---
 
 ## 📂 ลำดับความสำคัญของไฟล์ (File Structure)
 
-*   **`src/app/page.tsx`**: หน้า Command Dashboard หลัก (มีการดึงข้อมูลจาก FastAPI และการสลับหน้าต่าง Test Runner)
-*   **`src/app/architecture/page.tsx`**: หน้า Document รวบรวมข้อมูลเชิงลึกของ BRNA 
-*   **`src/components/TopologyCanvas.tsx`**: ไฟล์จัดการวาดกราฟิกแผนที่ 2D บน Canvas และควบคุม Animation ของเครือข่าย
-*   **`src/components/Navbar.tsx`**: ส่วนของ Navigation นำทางด้านบน
-*   **`main.py`**: API Backend (FastAPI) ที่รับ Request เพื่อสั่งให้ Environment Python ใน Core Engine ตื่นขึ้นมาทำงาน
+- **`src/app/page.tsx`**: หน้า Command Dashboard หลัก (มีการดึงข้อมูลจาก FastAPI และการสลับหน้าต่าง Test Runner)
+- **`src/app/architecture/page.tsx`**: หน้า Document รวบรวมข้อมูลเชิงลึกของ BRNA
+- **`src/components/TopologyCanvas.tsx`**: ไฟล์จัดการวาดกราฟิกแผนที่ 2D บน Canvas และควบคุม Animation ของเครือข่าย
+- **`src/components/Navbar.tsx`**: ส่วนของ Navigation นำทางด้านบน
+- **`main.py`**: API Backend (FastAPI) ที่รับ Request เพื่อสั่งให้ Environment Python ใน Core Engine ตื่นขึ้นมาทำงาน
