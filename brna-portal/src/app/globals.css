@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+:root {
+  --background: #050a10;
+  --foreground: #e2e8f0;
+  --primary: #3b82f6;
+  --secondary: #8b5cf6;
+  --accent: #10b981;
+  --card-bg: rgba(15, 23, 42, 0.8);
+  --border: rgba(51, 65, 85, 0.5);
+  --glow: rgba(59, 130, 246, 0.5);
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 40%);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-2xl shadow-2xl;
+  }
+  
+  .glow-border {
+    @apply border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)];
+  }
+  
+  .brna-btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all active:scale-95 disabled:opacity-50;
+  }
+  
+  .brna-btn-primary {
+    @apply bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/40;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #050a10;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Topology Canvas Container */
+.canvas-container {
+  mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+}

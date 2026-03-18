@@ -55,7 +55,7 @@ class DNAStore:
     def write(self, key: str, data: bytes) -> str:
         """Write data to DNA storage. Returns the DNA sequence ID."""
         dna = self.encode_to_dna(data)
-        seq_id = hashlib.sha256(f"{key}-{self.write_count}".encode()).hexdigest()[:12]
+        seq_id = hashlib.sha256(f"{self.node_id}-{key}-{self.write_count}".encode()).hexdigest()[:12]
         self.storage[seq_id] = dna
         self.write_count += 1
         print(f"[DNA-Store] Written: key={key} seq_id={seq_id} length={len(dna)} bases")
