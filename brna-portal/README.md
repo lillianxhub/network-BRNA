@@ -28,14 +28,30 @@
 
 เนื่องจากระบบนี้ประกอบด้วย 2 ฝั่ง (Frontend และ Backend) จะต้องรันทั้งคู่ขนานกัน:
 
+## ใช้งานด้วย Setup Scripts จาก Root (🚀 แนะนำ)
+
+หากรันโปรเจกต์จาก Root Directory สามารถใช้สคริปต์อัตโนมัติได้:
+```bash
+cd /home/shachi/repos/network_project
+./setup.sh  # ติดตั้ง Requirements ของ FastAPI และ Next.js
+./run.sh    # เปิดเซิร์ฟเวอร์ทั้งสองตัวพร้อมกัน
+```
+
+---
+
+## 🚀 การเปิดรันระบบแบบ Manual
+
+เนื่องจากระบบนี้ประกอบด้วย 2 ฝั่ง (Frontend และ Backend) จะต้องรันทั้งคู่ขนานกัน:
+
 ### 1. เปิด BRNA Backend API (FastAPI)
-ตัว Backend ทำหน้าที่เชื่อมต่อกับ Python Core Engine และอ่านผลลัพธ์มาส่งให้เว็บ:
+ตัว Backend ทำหน้าที่เชื่อมต่อกับ Python Core Engine และต้องรันผ่าน Virtual Environment ของ Core Engine ตลอดเวลา เพื่อให้มี Library ครบถ้วน (เช่น FastAPI, Uvicorn, Qiskit)
+
 ```bash
 # เปิด Terminal ช่องแรก
 cd /home/shachi/repos/network_project/brna-portal
 
-# รันเซิร์ฟเวอร์ FastAPI บนเครื่อง
-python main.py
+# รันเซิร์ฟเวอร์ FastAPI บนเครื่อง ด้วย Python ของ venv ตัวหลัก
+../Github_artifact/pro10-brna-v2/.venv/bin/python main.py
 ```
 *(Backend จะรันอยู่ที่พอร์ต `http://localhost:8000`)*
 

@@ -31,15 +31,35 @@
 
 ---
 
-## 🚀 การเริ่มต้นใช้งาน (Quick Start)
+## ใช้งานด้วย Setup Scripts (🚀 แนะนำ)
+
+วิธีที่ง่ายที่สุดในการติดตั้ง Requirements และรันโปรเจกต์คือการใช้ Script:
+
+1. **ติดตั้ง Dependencies ทั้งหมด (Python + Node.js)**
+   ```bash
+   chmod +x setup.sh run.sh
+   ./setup.sh
+   ```
+
+2. **เปิดระบบทั้ง 2 ส่วน (Frontend + Backend) พร้อมกัน**
+   ```bash
+   ./run.sh
+   ```
+   *เปิดเบราว์เซอร์ดูผลลัพธ์ที่ `http://localhost:3000`*
+
+---
+
+## 🚀 การเริ่มต้นใช้งานแบบ Manual (Manual Start)
 
 เพื่อให้ระบบทำงานได้สมบูรณ์ กรุณาเปิดระบบทั้ง 2 ส่วนควบคู่กัน:
 
 1. **รัน BRNA Portal Backend (FastAPI)**
+   ตัว Backend อาศัย Environment ของ BRNA Core Engine ในการสั่งงาน
    ```bash
+   # หากยังไม่ได้สร้าง venv ให้ไปสร้างที่ /Github_artifact/pro10-brna-v2
+   # จากนั้นรัน FastAPI ด้วย venv ของ Core Engine
    cd brna-portal
-   # รัน Virtual Environment (ถ้ามี)
-   python main.py
+   ../Github_artifact/pro10-brna-v2/.venv/bin/python main.py
    ```
    *เซิร์ฟเวอร์จะรันที่ `http://localhost:8000`*
 
